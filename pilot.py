@@ -1,6 +1,7 @@
 from taskMain import Main
 from taskPoll import Poll
 from taskComm import Communication
+from time import sleep
 
 if __name__ == '__main__':
     main = Main()
@@ -10,8 +11,7 @@ if __name__ == '__main__':
     poll.start()
     comm.start()
 
-    import time
-    time.sleep(10)
+    sleep(10)
 
     main.stop()
     poll.stop()

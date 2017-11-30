@@ -5,6 +5,7 @@
 
 import serial
 from time import sleep
+import os
 
 
 class ArduinoOpenError(Exception):
@@ -16,20 +17,27 @@ class ArduinoOpenError(Exception):
 class Arduino:
 
     def __init__(self):
+        if os.name == 'nt':
+            self.port = 'COM4'
+        self.baud_rate = 2000000
         try:
-            self.ser = serial.Serial('/dev/ttyACM0', 115200)
-            self.port = '/dev/ttyACM0'
+            self.ser = serial.Serial(self.port, self.baud_rate)
         except:
             self.ser = serial.Serial('/dev/ttyACM1', 115200)
             self.port = '/dev/ttyACM1'
-        finally:
-            pass
         self.flush()
+        self.buf = []
         # --------------------------------------------------------------
         print('Arduino Waiting...')
-        sleep(3)
-        # ここで3秒待たないと通信が死ぬ（原因不明・Arduinoの立ち上がり待ちっぽい？）
-        print("Arduino Opened {0}".format(self.port))
+
+        while True:
+            self.write("RasPi:Ready;")
+            sleep(0.001)
+            response = self.read_str_until(';')
+            if response == "Arduino:OK":
+                break
+
+        print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
         cmd = [99, 0, 0]
@@ -39,10 +47,17 @@ class Arduino:
     def flush(self):
         self.ser.reset_input_buffer()
 
+    def available(self, num=0):
+        if num == 0:
+            return self.ser.in_waiting
+        elif num > 0:
+            return self.ser.in_waiting >= num
+        else:
+            return False
+
     def send(self, cmd_data):
         ser_data = self.encode(cmd_data)
-        for i in range(7):
-            self.ser.write(ser_data[i].to_bytes(1, byteorder='little'))
+        self.write(ser_data)
 
     def receive(self):
         cnt = 0
@@ -60,9 +75,26 @@ class Arduino:
 
         return False
         
-    def read(self):
-        result = int.from_bytes(self.ser.read(), 'little')
-        return result 
+    def read_one_byte(self):
+        result = self.ser.read()
+        return result
+
+    def read_str_until(self, terminator):
+        while self.available(1):
+            tmp = self.read_one_byte().decode('utf-8')
+            if tmp == terminator:
+                result = self.buf
+                self.buf =[]
+                break
+            self.buf.append(tmp)
+        else:
+            return False
+
+        return ''.join(result)
+
+
+    def write(self, ser_data):
+        self.ser.write(ser_data.encode('ASCII'))
 
     @staticmethod
     def encode(cmd_data):
@@ -106,6 +138,3 @@ class Arduino:
         
 if __name__ == "__main__":
     a = Arduino()
-    a.send([2, 10, 10])
-    sleep(2)
-    print(a.receive())

@@ -40,8 +40,8 @@ class Arduino:
         print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
-        cmd = [99, 0, 0]
-        self.send(cmd)
+        # cmd = [99, 0, 0]
+        # self.send(cmd)
         self.ser.close()
 
     def flush(self):

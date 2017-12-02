@@ -1,12 +1,13 @@
 from task import Task
 from request import req
+from time import sleep
 
 
 class Communication(Task):
     """
     Arduinoとの通信タスクです。一定周期でポーリングや命令の送信を行います。
     """
-    INTERVAL = 1
+    INTERVAL = 0.001
 
     def __init__(self):
         """
@@ -25,4 +26,6 @@ class Communication(Task):
 if __name__ == '__main__':
     comm = Communication()
     comm.start()
-    print('launched')
+    while True:
+        print(req.vals)
+        sleep(1)

@@ -8,23 +8,27 @@ class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 4
+    INTERVAL = 0.01
 
     def __init__(self):
         """
         コンストラクタです。
         """
-        Task.__init__(self)
+        self.num = 0
         sleep(1)  # 先に起動すると困る
+        Task.__init__(self)
 
     def work(self):
         """
         主となる関数です。
         :return: None
         """
-        print(uss.vals)
         print(req.vals)
-        req.order([2, 50, 10])
+        if self.num % 2 == 0:
+            req.order(["Straight", 50, 10])
+        else:
+            req.order(["Stop"])
+        self.num += 1
 
 if __name__ == '__main__':
     main = Main()

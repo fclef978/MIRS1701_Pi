@@ -19,6 +19,8 @@ class Arduino:
     def __init__(self):
         if os.name == 'nt':
             self.port = 'COM4'
+        elif os.name == 'posix':
+            self.port = 'ttyACM0'
         self.baud_rate = 2000000
         try:
             self.ser = serial.Serial(self.port, self.baud_rate)
@@ -27,22 +29,25 @@ class Arduino:
             self.port = '/dev/ttyACM1'
         self.flush()
         self.buf = []
-        # --------------------------------------------------------------
         print('Arduino Waiting...')
 
-        while True:
-            self.write("RasPi:Ready;")
-            sleep(0.001)
-            response = self.read_str_until(';')
-            if response == "Arduino:OK":
-                break
+        while self.open():
+            pass
 
         print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
-        # cmd = [99, 0, 0]
-        # self.send(cmd)
+        cmd = ['reset']
+        self.send(cmd)
         self.ser.close()
+
+    def open(self):
+        self.write("RasPi:Ready;")
+        sleep(0.001)
+        response = self.read_str_until(';')
+        if response == "Arduino:OK":
+            return True
+        return False
 
     def flush(self):
         self.ser.reset_input_buffer()
@@ -59,21 +64,15 @@ class Arduino:
         ser_data = self.encode(cmd_data)
         self.write(ser_data)
 
-    def receive(self):
-        cnt = 0
-        ser_data = [0] * 7
-        # 50ループ(だいたい50ミリ秒)でタイムアウト
-        for i in range(50):
-            if self.ser.in_waiting >= 7:
-                ser_data[0] = self.read()
-                if ser_data[0] >= 0x80: # 0x80 = 128
-                    for i in range(1, 7):
-                        ser_data[i] = self.read()
-                    cmd_data = self.decode(ser_data)
-                    return cmd_data
-            sleep(0.001)
+    def arduino_update(self):
+        ser_data = self.encode(["update"])
+        self.write(ser_data)
 
-        return False
+    def receive(self):
+        tmp = self.read_str_until(';')
+        if not tmp:
+            return False
+        return tmp.split(':')
         
     def read_one_byte(self):
         result = self.ser.read()
@@ -92,29 +91,22 @@ class Arduino:
 
         return ''.join(result)
 
-
     def write(self, ser_data):
         self.ser.write(ser_data.encode('ASCII'))
 
     @staticmethod
     def encode(cmd_data):
-        mid_data = [0] * 6
-        ser_data = [0] * 7
-        
-        mid_data[0] = (cmd_data[0] >> 8) & 0x00ff
-        mid_data[1] = cmd_data[0] & 0x00ff
-        mid_data[2] = (cmd_data[1] >> 8) & 0x00ff
-        mid_data[3] = cmd_data[1] & 0x00ff
-        mid_data[4] = (cmd_data[2] >> 8) & 0x00ff
-        mid_data[5] = cmd_data[2] & 0x00ff
-
-        ser_data[0] = 0x80 | ((mid_data[0] >> 1) & 0x7f)
-        ser_data[1] = ((mid_data[0] << 6) & 0x40) | ((mid_data[1] >> 2) & 0x3f)
-        ser_data[2] = ((mid_data[1] << 5) & 0x60) | ((mid_data[2] >> 3) & 0x1f)
-        ser_data[3] = ((mid_data[2] << 4) & 0x70) | ((mid_data[3] >> 4) & 0x0f)
-        ser_data[4] = ((mid_data[3] << 3) & 0x78) | ((mid_data[4] >> 5) & 0x07)
-        ser_data[5] = ((mid_data[4] << 2) & 0x7c) | ((mid_data[5] >> 6) & 0x03)
-        ser_data[6] = ((mid_data[5] << 1) & 0x7e)
+        cmd = cmd_data[0].lower()
+        if cmd == "update":
+            ser_data = "CU:1;"
+        elif cmd == "stop":
+            ser_data = "RM:1;"
+        elif cmd == "straight":
+            ser_data = "RM:2;RS:{0};RD:{1};".format(cmd_data[1], cmd_data[2])
+        elif cmd == "reset":
+            ser_data = "RM:100;"
+        else:
+            ser_data = None
 
         return ser_data
 
@@ -138,3 +130,7 @@ class Arduino:
         
 if __name__ == "__main__":
     a = Arduino()
+    a.send(["STRAIGHT", 12, 13])
+    a.arduino_update()
+    sleep(2)
+    print(a.receive())

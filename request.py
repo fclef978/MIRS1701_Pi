@@ -15,18 +15,18 @@ class Request:
     def __init__(self):
         self.arduino = Arduino()
         self.q = Queue()  # キューの生成
-        self.vals = {'batt': 0}  # データ入れ
+        self.vals = {}  # データ入れ
 
     def get(self):
         """
         値を取得します。取得した値はvalsへ格納されます。
         :return: None
         """
-        self.arduino.send([12, 0, 0])
-        sleep(0.01)
-        tmp = self.arduino.receive()
-        if not tmp == False:
-            self.vals['batt'] = tmp[0] / 100
+        while True:
+            tmp = self.arduino.receive()
+            if not tmp:
+                break
+            self.vals[tmp[0]] = float(tmp[1])
 
     def order(self, cmd):
         """
@@ -41,15 +41,19 @@ class Request:
         キュー内のコマンドをArduinoへ送信します。
         :return: None
         """
+        if self.q.empty():
+            return
         while not self.q.empty():  # キューが空じゃなかったらループ
             cmd = self.q.get()  # キューから取り出す
             self.arduino.send(cmd)  # 型チェックしたほうがいいじゃないの？
+        self.arduino.arduino_update()
 
 req = Request()  # このグローバル変数を各モジュールが操作します。
 
 if __name__ == '__main__':
+    sleep(1.5)
     req.get()
     print(req.vals)
-    req.order([2, 50, 100])
+    req.order(['Straight', 50, 100])
     req.put()
-    sleep(10)
+    sleep(1)

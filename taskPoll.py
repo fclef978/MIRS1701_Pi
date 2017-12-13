@@ -1,6 +1,7 @@
 from uss import uss
 from task import Task
 
+import logging
 
 class Poll(Task):
     """
@@ -12,6 +13,7 @@ class Poll(Task):
         """
         コンストラクタです。
         """
+        self.logger = logging.getLogger(__name__)
         Task.__init__(self)
 
     def work(self):
@@ -20,7 +22,6 @@ class Poll(Task):
         :return: None
         """
         uss.get()
-        print('polling!')
 
 if __name__ == '__main__':
     poll = Poll()

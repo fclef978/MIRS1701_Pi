@@ -3,17 +3,19 @@ from uss import uss
 from request import req
 from time import sleep
 
+import logging
 
 class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 0.01
+    INTERVAL = 1
 
     def __init__(self):
         """
         コンストラクタです。
         """
+        self.logger = logging.getLogger(__name__)
         self.num = 0
         sleep(1)  # 先に起動すると困る
         Task.__init__(self)
@@ -23,7 +25,6 @@ class Main(Task):
         主となる関数です。
         :return: None
         """
-        print(req.vals)
         if self.num % 2 == 0:
             req.order(["Straight", 50, 10])
         else:

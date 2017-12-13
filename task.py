@@ -2,6 +2,8 @@ from abc import ABCMeta, abstractclassmethod
 from threading import Thread, Event
 from time import sleep
 
+import logging
+
 
 class Task(Thread, metaclass=ABCMeta):
     """
@@ -19,13 +21,15 @@ class Task(Thread, metaclass=ABCMeta):
         Thread.__init__(self)  # スレッド初期化
         self.e = Event()  # イベント生成
         self.alive = True  # 生存情報
+        self.logger.info("Thread Start")
 
     def __del__(self):
         """
         デストラクタです。スレッドを止めます。
         :return: None
         """
-        self.stop()  # 停止
+        if self.alive:
+            self.stop()  # 停止
 
     def run(self):
         """
@@ -39,6 +43,7 @@ class Task(Thread, metaclass=ABCMeta):
             self.e.set()  # イベント送信
             sleep(self.INTERVAL)  # 周期実行
         self.e.set()  # 終了時もイベント送信しないとwait()で引っかかる
+        self.logger.info("Runner Stop")
 
     def stop(self):
         """
@@ -46,6 +51,7 @@ class Task(Thread, metaclass=ABCMeta):
         :return: None
         """
         self.alive = False
+        self.logger.info("Send Stop Signal")
 
     def thread(self):
         """
@@ -56,6 +62,7 @@ class Task(Thread, metaclass=ABCMeta):
         while True:
             self.e.wait()  # イベント待ち
             if not self.alive:  # 生存確認
+                self.logger.info("Thread Stop")
                 return
             self.work()  # 実行
             self.e.clear()  # イベントクリア

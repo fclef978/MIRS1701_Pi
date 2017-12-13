@@ -2,6 +2,8 @@ from task import Task
 from request import req
 from time import sleep
 
+import logging
+
 
 class Communication(Task):
     """
@@ -13,8 +15,9 @@ class Communication(Task):
         """
         コンストラクタです。
         """
+        self.logger = logging.getLogger(__name__)
         Task.__init__(self)
-
+    
     def work(self):
         """
         主となる関数です。

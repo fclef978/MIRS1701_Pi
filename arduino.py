@@ -20,7 +20,7 @@ class Arduino:
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
-            self.port = 'ttyACM0'
+            self.port = '/dev/ttyACM0'
         self.baud_rate = 2000000
         try:
             self.ser = serial.Serial(self.port, self.baud_rate)
@@ -111,24 +111,6 @@ class Arduino:
             ser_data = None
 
         return ser_data
-
-    @staticmethod
-    def decode(ser_data):
-        mid_data = [0] * 6
-        cmd_data = [0] * 3
-
-        mid_data[0] = ((ser_data[0] << 1) & 0xfe) | ((ser_data[1] >> 6) & 0x01)
-        mid_data[1] = ((ser_data[1] << 2) & 0xfc) | ((ser_data[2] >> 5) & 0x03)
-        mid_data[2] = ((ser_data[2] << 3) & 0xf8) | ((ser_data[3] >> 4) & 0x07)
-        mid_data[3] = ((ser_data[3] << 4) & 0xf0) | ((ser_data[4] >> 3) & 0x0f)
-        mid_data[4] = ((ser_data[4] << 5) & 0xe0) | ((ser_data[5] >> 2) & 0x1f)
-        mid_data[5] = ((ser_data[5] << 6) & 0xc0) | ((ser_data[6] >> 1) & 0x3f)
-
-        cmd_data[0] = (mid_data[0] << 8) | mid_data[1]
-        cmd_data[1] = (mid_data[2] << 8) | mid_data[3]
-        cmd_data[2] = (mid_data[4] << 8) | mid_data[5]
-
-        return cmd_data
         
 if __name__ == "__main__":
     a = Arduino()

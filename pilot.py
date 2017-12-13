@@ -3,6 +3,11 @@ from taskPoll import Poll
 from taskComm import Communication
 from time import sleep
 
+import logging
+import logging.config
+logging.config.fileConfig('logging.conf')
+
+
 if __name__ == '__main__':
     main = Main()
     poll = Poll()
@@ -11,7 +16,7 @@ if __name__ == '__main__':
     poll.start()
     comm.start()
 
-    sleep(10)
+    sleep(3)
 
     main.stop()
     poll.stop()

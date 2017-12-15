@@ -15,9 +15,10 @@ if __name__ == '__main__':
     main.start()
     poll.start()
     comm.start()
-
-    sleep(3)
-
+    print("Start Pilot")
+    sleep(5)
+    print("Stop Pilot")
     main.stop()
     poll.stop()
     comm.stop()
+    print("bye")

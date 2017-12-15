@@ -25,11 +25,7 @@ class Main(Task):
         主となる関数です。
         :return: None
         """
-        if self.num % 2 == 0:
-            req.order(["Straight", 50, 10])
-        else:
-            req.order(["Stop"])
-        self.num += 1
+        req.order(["Velocity", self.num * 10, self.num * -10])
 
 if __name__ == '__main__':
     main = Main()

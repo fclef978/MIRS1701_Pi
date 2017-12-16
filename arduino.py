@@ -107,6 +107,8 @@ class Arduino:
             ser_data = "RM:3;RO:{0};RA:{1};".format(cmd_data[1], cmd_data[2])
         elif cmd == "velocity":
             ser_data = "RM:4;VL:{0};VR:{1};".format(cmd_data[1], cmd_data[2])
+        elif cmd == "battery":
+            ser_data = "RM:5;BA:{0};BB:{1};".format(cmd_data[1], cmd_data[2])
         elif cmd == "reset":
             ser_data = "RM:100;"
         else:

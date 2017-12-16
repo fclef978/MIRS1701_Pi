@@ -15,6 +15,10 @@ class BatteryVoltageDiffError(Exception):
 
 
 class Battery:
+    """
+    バッテリー管理モジュールです。
+    電源電圧を監視し、常に適切な方のバッテリーに切り替えます。
+    """
 
     ACCEPTABLE_DIFF = 0.3
 

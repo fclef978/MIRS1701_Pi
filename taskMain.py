@@ -9,7 +9,7 @@ class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 1
+    INTERVAL = 2
 
     def __init__(self):
         """
@@ -25,7 +25,7 @@ class Main(Task):
         主となる関数です。
         :return: None
         """
-        req.order(["Velocity", self.num * 10, self.num * -10])
+        self.num += 1;
 
 if __name__ == '__main__':
     main = Main()

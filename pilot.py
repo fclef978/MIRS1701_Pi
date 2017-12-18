@@ -16,7 +16,7 @@ if __name__ == '__main__':
     poll.start()
     comm.start()
     print("Start Pilot")
-    sleep(5)
+    input('wait')
     print("Stop Pilot")
     main.stop()
     poll.stop()

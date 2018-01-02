@@ -5,6 +5,7 @@ from time import sleep
 
 import logging
 
+
 class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。

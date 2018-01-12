@@ -49,7 +49,7 @@ class Uss:
     taskMainからはvalsにアクセスされ、taskCommからはget()にアクセスされます。
     """
 
-    NUM = 2  # 超音波センサの数
+    NUM = 8  # 超音波センサの数
     ADDR_BASE = 0x70  # アドレスの最小値
 
     def __init__(self):

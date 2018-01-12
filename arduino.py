@@ -62,6 +62,7 @@ class Arduino:
 
     def send(self, cmd_data):
         ser_data = self.encode(cmd_data)
+        print(ser_data)
         self.write(ser_data)
 
     def arduino_update(self):

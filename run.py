@@ -56,6 +56,6 @@ class Run():
         else: #左壁の時
             rad = (math.pi / 4) - math.atan(Run.USS_DIST + ussvals[5] / Run.USS_DIST + ussvals[7])
             x = ussvals[2] * math.cos(rad) / 100
-        return [x,rad]
+        return (x, rad)
 
 run = Run()

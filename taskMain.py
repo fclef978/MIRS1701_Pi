@@ -2,6 +2,8 @@ from task import Task
 from uss import uss
 from request import req
 from time import sleep
+from battery import Battery
+from run import Run
 
 import logging
 
@@ -10,7 +12,7 @@ class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 2
+    INTERVAL = 1
 
     def __init__(self):
         """
@@ -20,6 +22,8 @@ class Main(Task):
         self.num = 0
         sleep(1)  # 先に起動すると困る
         Task.__init__(self)
+        self.batt = Battery(req.vals["btA"], req.vals["btB"]);
+        self.movement = Run()
 
     def work(self):
         """
@@ -27,6 +31,13 @@ class Main(Task):
         :return: None
         """
         self.num += 1;
+        cmds = [];
+        cmds += self.batt.generate_command(req.vals["btA"], req.vals["btB"])
+        for cmd in cmds:
+            print (cmd)
+            req.order(cmd)
+        #print(self.movement.position(uss.vals, 1));
+        #req.order(["velocity", 100, 100])
 
 if __name__ == '__main__':
     main = Main()

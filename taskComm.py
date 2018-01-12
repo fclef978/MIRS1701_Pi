@@ -24,6 +24,7 @@ class Communication(Task):
         :return: None
         """
         req.get()
+        self.logger.info("debug")
         req.put()
 
 if __name__ == '__main__':

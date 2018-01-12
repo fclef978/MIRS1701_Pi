@@ -9,14 +9,15 @@ logging.config.fileConfig('logging.conf')
 
 
 if __name__ == '__main__':
-    main = Main()
     poll = Poll()
     comm = Communication()
-    main.start()
     poll.start()
     comm.start()
+    main = Main()
+    main.start()
     print("Start Pilot")
-    input('wait')
+    while True:
+        pass
     print("Stop Pilot")
     main.stop()
     poll.stop()

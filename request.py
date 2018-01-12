@@ -1,4 +1,3 @@
-# import arduino
 from queue import Queue
 from arduino import Arduino
 from time import sleep
@@ -51,9 +50,8 @@ class Request:
 req = Request()  # このグローバル変数を各モジュールが操作します。
 
 if __name__ == '__main__':
-    sleep(1.5)
+    req.order(['Straight', 50, 100])
     req.get()
     print(req.vals)
-    req.order(['Straight', 50, 100])
     req.put()
     sleep(1)

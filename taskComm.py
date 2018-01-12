@@ -9,7 +9,7 @@ class Communication(Task):
     """
     Arduinoとの通信タスクです。一定周期でポーリングや命令の送信を行います。
     """
-    INTERVAL = 0.001
+    INTERVAL = 0.01
 
     def __init__(self):
         """
@@ -24,7 +24,6 @@ class Communication(Task):
         :return: None
         """
         req.get()
-        self.logger.info("debug")
         req.put()
 
 if __name__ == '__main__':

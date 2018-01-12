@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from taskMain import Main
 from taskPoll import Poll
 from taskComm import Communication

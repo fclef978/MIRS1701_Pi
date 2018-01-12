@@ -3,7 +3,7 @@ from uss import uss
 from request import req
 from time import sleep
 from battery import Battery
-from run import Run
+from run2 import Run
 
 import logging
 
@@ -12,7 +12,7 @@ class Main(Task):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 1
+    INTERVAL = 0.1
 
     def __init__(self):
         """
@@ -36,7 +36,8 @@ class Main(Task):
         for cmd in cmds:
             print (cmd)
             req.order(cmd)
-        #print(self.movement.position(uss.vals, 1));
+        x, th = self.movement.position(uss.vals, 1);
+        req.order(["velocity", int(-th * 0.5), int(th * 0.5)])
         #req.order(["velocity", 100, 100])
 
 if __name__ == '__main__':

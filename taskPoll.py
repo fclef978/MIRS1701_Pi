@@ -7,7 +7,7 @@ class Poll(Task):
     """
     超音波センサから値を取得するタスクです。一定周期でポーリングを行います。
     """
-    INTERVAL = 1
+    INTERVAL = 0.1
 
     def __init__(self):
         """

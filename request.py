@@ -1,3 +1,4 @@
+import pyximport; pyximport.install()
 from queue import Queue
 from arduino import Arduino
 from time import sleep
@@ -46,10 +47,9 @@ class Request:
             cmd = self.q.get()  # キューから取り出す
             self.arduino.send(cmd)  # 型チェックしたほうがいいじゃないの？
         self.arduino.arduino_update()
-        
-req = Request()  # このグローバル変数を各モジュールが操作します。
 
 if __name__ == '__main__':
+    req = Request()
     req.order(['Straight', 50, 100])
     req.get()
     print(req.vals)

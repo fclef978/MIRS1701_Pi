@@ -4,7 +4,7 @@
 # 2017-08-26
 
 import serial
-from time import sleep
+from time import sleep, time
 import os
 
 

@@ -75,10 +75,9 @@ class Uss:
         tmp = map(lambda x: x.get(), self.srf)
         self.vals = list(tmp)
 
-uss = Uss()  # このグローバル変数を各モジュールが操作します。
-
 
 if __name__ == '__main__':
+    uss = Uss()
     while True:
         uss.get()
         print(uss.vals)

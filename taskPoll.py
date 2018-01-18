@@ -1,5 +1,5 @@
 from uss import Uss
-from ptask import ProcessTask, process_kill
+from ptask import ProcessTask
 from time import sleep
 
 
@@ -34,4 +34,3 @@ if __name__ == '__main__':
         else:
             print(None)
         sleep(1)
-    process_kill(p)

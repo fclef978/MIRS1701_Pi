@@ -3,9 +3,7 @@ import time
 
 
 class IO:
-    FRONT = 18
-    LEFT = 25
-    RIGHT = 26
+    PIN = [11, 13, 15, 19, 21, 23, 29, 31]
 
     IN = GPIO.IN
     OUT = GPIO.OUT
@@ -14,7 +12,7 @@ class IO:
         self.port = port
         self.dir = dir
         self.isPullUp = isPullUp
-        GPIO.setmode(GPIO.BCM)
+        GPIO.setmode(GPIO.BOARD)
         if self.dir == IO.IN:
             if self.isPullUp:
                 GPIO.setup(self.port, self.dir, pull_up_down=GPIO.PUD_UP)
@@ -24,7 +22,8 @@ class IO:
             GPIO.setup(self.port, self.dir)
 
     def __del__(self):
-        self.off()
+        if self.dir == IO.OUT:
+            self.off()
         GPIO.cleanup(self.port)
 
     def read(self):
@@ -46,10 +45,3 @@ class IO:
 
     def inv(self):
         self.write(not self.read())
-
-
-if __name__ == "__main__":
-    io = IO(12, IO.OUT)
-    io.on()
-    io.off()
-    io.inv()

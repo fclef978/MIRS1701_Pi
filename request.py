@@ -1,7 +1,7 @@
 import pyximport; pyximport.install()
 from queue import Queue
 from arduino import Arduino
-from time import sleep
+from time import sleep, time
 
 
 class Request:
@@ -23,7 +23,9 @@ class Request:
         :return: None
         """
         while True:
+            # start = time()
             tmp = self.arduino.receive()
+            # print(time()-start)
             if not tmp:
                 break
             self.vals[tmp[0]] = float(tmp[1])

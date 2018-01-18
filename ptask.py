@@ -8,9 +8,9 @@ class ProcessTask(Process):
     INTERVAL = 1
 
     def __init__(self):
-        self.alive = True
         self.pipe = None
         self.buf = {}
+        self.killer_r, self.killer_s = Pipe(False)
         Process.__init__(self)
 
     def __del__(self):
@@ -24,23 +24,20 @@ class ProcessTask(Process):
         r, s = Pipe(duplex)
         self.pipe = r
         return s
+        
+    def stop(self):
+        self.killer_s.send("die")
 
-    def is_kill(self):
-        self.recv()
-        if "terminate" in self.buf:
-            if self.buf["terminate"]:
+    def is_dead(self):
+        if self.killer_r.poll():
+            if self.killer_r.recv() == "die":
                 return True
         return False
 
     def run(self):
-        while self.alive:
-            if self.is_kill():
-                break
+        while not self.is_dead():
             self.work()
             sleep(self.INTERVAL)
-
-    def stop(self):
-        self.alive = False
 
     @abstractclassmethod
     def work(self):
@@ -60,7 +57,3 @@ class ProcessTask(Process):
 
     def send(self, data):
         self.pipe.send(data)
-
-
-def process_kill(pipe):
-    pipe.send({"terminate": True})

@@ -1,9 +1,8 @@
 from ttask import PeriodicTask
-from uss import uss
-#from request import req
 from time import sleep
 from battery import Battery
 from run2 import Run
+from gpio import IO
 
 import logging
 
@@ -14,16 +13,31 @@ class Main(PeriodicTask):
     """
     INTERVAL = 1
 
-    def __init__(self):
+    def __init__(self, uss, comm):
         """
         コンストラクタです。
         """
         self.logger = logging.getLogger(__name__)
+        
+        self.pipe_uss = uss
+        self.pipe_comm = comm
+        self.uss = []
+        self.req = {}
+        
         sleep(1)  # 先に起動すると困る
         PeriodicTask.__init__(self)
+        
         self.cmds = []
-        # self.batt = Battery(req.vals["btA"], req.vals["btB"])
-        # self.movement = Run()
+        
+        self.recv()
+        self.batt = Battery(self.req["btA"], self.req["btB"])
+        self.movement = Run()
+        
+        self.ms = []
+        for pin in IO.PIN:
+            print (pin)
+            self.ms.append(IO(pin, IO.IN, True))
+        self.ms = tuple(self.ms)
 
     def work(self):
         """
@@ -31,11 +45,16 @@ class Main(PeriodicTask):
         :return: None
         """
         self.cmds = []
-        # self.batt_check()
-        print (uss.vals)
-        #x, th = self.movement.position(uss.vals, 1);
-        # req.order(["velocity", int(-th * 0.5), int(th * 0.5)])
-        #req.order(["velocity", 100, 100])
+        self.recv()
+        # print(self.uss)
+        # print(self.req)
+        print([io.read() for io in self.ms])
+        
+    def recv(self):
+        if self.pipe_uss.poll():
+            self.uss = self.pipe_uss.recv()
+        if self.pipe_comm.poll():
+            self.req = self.pipe_comm.recv()
 
     def batt_check(self):
         pass

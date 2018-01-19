@@ -38,7 +38,7 @@ class Main(PeriodicTask):
             print (pin)
             self.ms.append(IO(pin, IO.IN, True))
         self.ms = tuple(self.ms)
-
+    
     def work(self):
         """
         主となる関数です。

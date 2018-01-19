@@ -5,6 +5,7 @@
 
 import serial
 from time import sleep, time
+from gpio import IO
 import os
 
 
@@ -17,6 +18,8 @@ class ArduinoOpenError(Exception):
 class Arduino:
 
     def __init__(self):
+        self.reset_pin = IO(IO.RESET, IO.OUT)
+        self.reset_pin.on()
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
@@ -37,9 +40,10 @@ class Arduino:
         print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
-        cmd = ['reset']
-        self.send(cmd)
         self.ser.close()
+        self.reset_pin.off()
+        sleep(0.01)
+        self.reset_pin.on()
 
     def open(self):
         self.write("RasPi:Ready;")

@@ -4,6 +4,7 @@ import time
 
 class IO:
     PIN = [11, 13, 15, 19, 21, 23, 29, 31]
+    RESET = 32
 
     IN = GPIO.IN
     OUT = GPIO.OUT
@@ -22,8 +23,6 @@ class IO:
             GPIO.setup(self.port, self.dir)
 
     def __del__(self):
-        if self.dir == IO.OUT:
-            self.off()
         GPIO.cleanup(self.port)
 
     def read(self):

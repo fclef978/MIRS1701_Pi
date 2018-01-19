@@ -11,7 +11,7 @@ class Main(PeriodicTask):
     """
     メインタスクです。センサーから値を取得して走行します。
     """
-    INTERVAL = 1
+    INTERVAL = 0.1
 
     def __init__(self, uss, comm):
         """
@@ -46,9 +46,16 @@ class Main(PeriodicTask):
         """
         self.cmds = []
         self.recv()
-        # print(self.uss)
-        # print(self.req)
-        print([io.read() for io in self.ms])
+        self.movement.set_val(True, self.uss)
+        cmd = self.movement.straight()
+        self.cmds += cmd
+        self.batt_check()
+        self.cmds_send()
+        
+    def cmd_append(self, cmd):
+        if cmd is None:
+            return
+        self.cmds += cmd
         
     def recv(self):
         if self.pipe_uss.poll():
@@ -57,13 +64,12 @@ class Main(PeriodicTask):
             self.req = self.pipe_comm.recv()
 
     def batt_check(self):
-        pass
-        #self.cmds += self.batt.generate_command(req.vals["btA"], req.vals["btB"])
+        self.cmds += self.batt.generate_command(self.req["btA"], self.req["btB"])
 
     def cmds_send(self):
         for cmd in self.cmds:
             print (cmd)
-            #req.order(cmd)
+            (cmd)
 
 if __name__ == '__main__':
     main = Main()

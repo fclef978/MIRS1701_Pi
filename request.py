@@ -52,7 +52,7 @@ class Request:
 
 if __name__ == '__main__':
     req = Request()
-    req.order(['Straight', 50, 100])
+    req.order(['Straight', 10, 10])
     req.get()
     print(req.vals)
     req.put()

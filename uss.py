@@ -20,7 +20,6 @@ class SRF02:
     INTERVAL = 0.05
     MIN_DIST = 16
     MAX_DIST = 600
-    CENTER_DIST = 10
 
     def __init__(self, addr):
         self.addr = addr
@@ -31,15 +30,17 @@ class SRF02:
             print("SRF02 opened in {0}".format(self.addr))    #超音波センサでなければ例外
 
     def emit(self):
+        sleep(0.002)
         i2c.write_byte_data(self.addr, 0x00, 0x51)     #超音波出す
 
-    def get(self):                            #返ってくるまで待つ
+    def get(self):       
+        sleep(0.002)                     #返ってくるまで待つ
         data = i2c.read_i2c_block_data(self.addr, 0x02, 2)
         data = (data[0] << 8) | data[1]
         if data < SRF02.MIN_DIST or data > SRF02.MAX_DIST:
             return False                                    #超音波センサの測定不可区間
         else:
-            return data + SRF02.CENTER_DIST                   #機体からの距離をかえす
+            return data                   #壁からの距離をかえす
 
 
 class Uss:
@@ -71,8 +72,10 @@ class Uss:
         """
         for srf in self.srf:
             srf.emit()
-        sleep(0.05)
-        tmp = map(lambda x: x.get(), self.srf)
+        sleep(0.055)
+        def f(x):
+            return x.get()
+        tmp = map(f, self.srf)
         self.vals = list(tmp)
 
 

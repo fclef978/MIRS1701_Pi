@@ -1,63 +1,64 @@
-import uss
 import math
 
 class Run():
     RADIUS = 40 #MIRSのタイヤ間の距離[cm]
-    USS_DIST = 19 #MIRSの中心から超音波センサまでの距離[cm]
-    Kp = 1
+    USS_RADIUS = 19
+    USS_DIST = 30 #MIRSの中心から超音波センサまでの距離[cm]
+    USS_DIFF = 6
+    Kp = 50
     Ki = 1
     Kd = 1
     TARGET_DIST = 0.4 #目標となる壁との距離[m]
     INTERVAL = 0.01 #制御周期[s]
-
+    USS_DICT_LIST = ["f", "sf", "s", "sb", "b"]
 
     def __init__(self):
+        self.isLeft = True
         self.vel_left_sum = 0
         self.vel_right_sum = 0
+        self.uss = {}
+        self.speed = 15
+        self.cmd_prev = []
 
-    def straight(self,ussvals,reqvals,vel,wall_flag):
-        """
-        壁と一定の距離を保ち、直進走行します。
-        :return
-        """
-        posi = []
-        cmd = ['Velosity']
-        #目標値との差を計算
-        posi.extend(self.position(ussvals,wall_flag))
-        distx_diff = Run.TARGET_DIST - posi[0]
-        disty_diff = math.sqrt(vel - distx_diff)
+    def set_val(self, isLeft, uss):
+        self.isLeft = isLeft
+        self.uss["f"] = uss[0]
+        self.uss["b"] = uss[4]
+        if self.isLeft:
+            self.uss["sf"] = uss[7]
+            self.uss["s"] = uss[6]
+            self.uss["sb"] = uss[5]
+        else:
+            self.uss["sf"] = uss[1]
+            self.uss["s"] = uss[2]
+            self.uss["sb"] = uss[3]
 
-        #速度計算
-        vel_left = distx_diff * math.cos(posi[1]) + disty_diff * math.sin(posi[1]) + (Run.RADIUS * wall_flag * posi[1] / 2) / Run.INTERVAL
-        vel_right = distx_diff * math.cos(posi[1]) + disty_diff * math.sin(posi[1]) - (Run.RADIUS * wall_flag * posi[1] / 2) / Run.INTERVAL
+    def straight(self):
+        dist = Run.TARGET_DIST - self.calc_dist()  # 近いと正、遠いと負
+        speedMod = dist * Run.Kp
+        speedL, speedR = self.speed + speedMod, self.speed - speedMod
+        return self.is_duplicate_cmd([["velocity", speedL, speedR]])
 
-        vel_left_diff = vel_left - reqvals[1]
-        vel_right_diff = vel_right - reqvals[2]
-        self.vel_left_sum += vel_left_diff
-        self.vel_right_sum += vel_right_diff
-        vel_left_target = Run.Kp * vel_left + Run.Ki * vel_left_diff + Run.Kd * vel_left_diff
-        vel_right_target = Run.Kp * vel_right + Run.Ki * vel_right_diff + Run.Kd * vel_right_diff
-
-        #整数に変換
-        cmd.append(round(vel_left_target))
-        cmd.append(round(vel_right_target))
-
-        return cmd
-
-    def position(self,ussvals,wall_flag):
-        """
-        MIRSの壁との距離x、壁と平行な線に対する自分の角度radを計算します。
-        (超音波センサは正面が0、そこから時計回りに割り振られているものとする。)
-        :return: [x,rad]
-        """
-        if  wall_flag == 1: #右壁の時
-            rad = self.calc_rad(ussvals[1], ussvals[3])
-            x = ussvals[2] * math.cos(rad) / 100
-        else: #左壁の時
-            rad = self.calc_rad(ussvals[5], ussvals[7])
-            x = ussvals[2] * math.cos(rad) / 100
-        return (x, math.degrees(rad))
+    def is_duplicate_cmd(self, cmd):
+        if self.cmd_prev == cmd:
+            return cmd
+        else:
+            return []
         
-    @staticmethod
-    def calc_rad(a, b):
-        return (math.pi / 4) - math.atan((Run.USS_DIST + a) / (Run.USS_DIST + b))
+    def calc_ratio(self):
+        front = self.uss["sf"]
+        back = self.uss["sb"]
+        tmp = ((back- front) / Run.USS_DIST) ** 2.0
+        return (tmp + 1) ** -0.5
+        
+    def calc_angle(self):
+        front = self.uss["sf"]
+        back = self.uss["sb"]
+        tmp = math.acos(self.calc_ratio())
+        if (self.isLeft and front > back) or (not self.isLeft and back > front):
+            tmp *= -1
+        return math.degrees(tmp)
+        
+    def calc_dist(self):
+        tmp = self.calc_ratio()
+        return tmp * self.uss["s"] + Run.USS_RADIUS

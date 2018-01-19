@@ -9,7 +9,7 @@ class Communication(ProcessTask):
     """
     Arduinoとの通信タスクです。一定周期でポーリングや命令の送信を行います。
     """
-    INTERVAL = 0.01
+    INTERVAL = 0.1
 
     def __init__(self):
         """
@@ -40,3 +40,4 @@ if __name__ == '__main__':
         else:
             print(None)
         sleep(1)
+    comm.stop()

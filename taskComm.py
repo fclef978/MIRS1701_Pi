@@ -7,7 +7,7 @@ import logging
 
 class Communication(ProcessTask):
     """
-    Arduinoとの通信タスクです。一定周期でポーリングや命令の送信を行います。
+    Arduinoとの通信タスクです。ポーリングや命令の送信を行います。
     """
     INTERVAL = 0.1
 
@@ -16,8 +16,9 @@ class Communication(ProcessTask):
         コンストラクタです。
         """
         self.logger = logging.getLogger(__name__)
+        self.set_queue()
         ProcessTask.__init__(self)
-        self.req = Request()
+        self.req = Request(self.q)
     
     def work(self):
         """
@@ -32,11 +33,14 @@ class Communication(ProcessTask):
 if __name__ == '__main__':
     comm = Communication()
     p = comm.set_pipe()
+    q = comm.q
     comm.start()
     print('launched')
     for _ in range(5):
         if p.poll():
             print(p.recv())
+            if _ == 3:
+                q.put(["reset"])
         else:
             print(None)
         sleep(1)

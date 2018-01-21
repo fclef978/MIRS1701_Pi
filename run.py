@@ -1,6 +1,7 @@
 import uss
 import math
 
+
 class Run():
     RADIUS = 40 #MIRSのタイヤ間の距離[cm]
     USS_DIST = 19 #MIRSの中心から超音波センサまでの距離[cm]

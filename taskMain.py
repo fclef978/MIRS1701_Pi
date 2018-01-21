@@ -13,7 +13,7 @@ class Main(PeriodicTask):
     """
     INTERVAL = 0.1
 
-    def __init__(self, uss, comm):
+    def __init__(self, uss, comm, q):
         """
         コンストラクタです。
         """
@@ -23,6 +23,7 @@ class Main(PeriodicTask):
         self.pipe_comm = comm
         self.uss = []
         self.req = {}
+        self.q = q
         
         sleep(1)  # 先に起動すると困る
         PeriodicTask.__init__(self)
@@ -35,7 +36,6 @@ class Main(PeriodicTask):
         
         self.ms = []
         for pin in IO.PIN:
-            print (pin)
             self.ms.append(IO(pin, IO.IN, True))
         self.ms = tuple(self.ms)
     
@@ -68,8 +68,7 @@ class Main(PeriodicTask):
 
     def cmds_send(self):
         for cmd in self.cmds:
-            print (cmd)
-            (cmd)
+            self.q.put(cmd)
 
 if __name__ == '__main__':
     main = Main()

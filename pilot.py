@@ -18,7 +18,7 @@ if __name__ == '__main__':
     comm = Communication()
     commPipe = comm.set_pipe()
     comm.start()
-    main = Main(pollPipe, commPipe)
+    main = Main(pollPipe, commPipe, comm.q)
     main.start()
     print("Start Pilot")
     input("Enter to STOP")

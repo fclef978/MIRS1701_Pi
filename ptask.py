@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractclassmethod
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Queue, Event
 from time import sleep
 
 
@@ -10,7 +10,7 @@ class ProcessTask(Process):
     def __init__(self):
         self.pipe = None
         self.buf = {}
-        self.killer_r, self.killer_s = Pipe(False)
+        self.killer = Event()
         Process.__init__(self)
 
     def __del__(self):
@@ -24,15 +24,16 @@ class ProcessTask(Process):
         r, s = Pipe(duplex)
         self.pipe = r
         return s
+
+    def set_queue(self):
+        self.q = Queue()
+        return self.q
         
     def stop(self):
-        self.killer_s.send("die")
+        self.killer.set()
 
     def is_dead(self):
-        if self.killer_r.poll():
-            if self.killer_r.recv() == "die":
-                return True
-        return False
+        return self.killer.is_set()
 
     def run(self):
         while not self.is_dead():

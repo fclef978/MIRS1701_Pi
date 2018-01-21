@@ -12,9 +12,9 @@ class Request:
     taskMainからはvalsとorder()にアクセスされ、taskCommからはget()とput()にアクセスされます。
     """
 
-    def __init__(self):
-        self.arduino = Arduino()
-        self.q = Queue()  # キューの生成
+    def __init__(self, q):
+        self.arduino = None
+        self.q = q  # キューの生成
         self.vals = {}  # データ入れ
 
     def get(self):
@@ -29,14 +29,6 @@ class Request:
             if not tmp:
                 break
             self.vals[tmp[0]] = float(tmp[1])
-
-    def order(self, cmd):
-        """
-        キューへコマンドを挿入します。
-        :param cmd: Arduinoコマンド
-        :return: None
-        """
-        self.q.put(cmd)  # エンキュー
 
     def put(self):
         """

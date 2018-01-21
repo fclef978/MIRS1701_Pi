@@ -3,9 +3,9 @@
 # 2017-08-26
 # 2017-08-26
 
-import serial
+from serial import Serial
 from time import sleep, time
-from gpio import IO
+# from gpio import IO
 import os
 
 
@@ -18,17 +18,17 @@ class ArduinoOpenError(Exception):
 class Arduino:
 
     def __init__(self):
-        self.reset_pin = IO(IO.RESET, IO.OUT)
-        self.reset_pin.on()
+        # self.reset_pin = IO(IO.RESET, IO.OUT)
+        # self.reset_pin.on()
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
             self.port = '/dev/ttyACM0'
         self.baud_rate = 500000
         try:
-            self.ser = serial.Serial(self.port, self.baud_rate)
+            self.ser = Serial(self.port, self.baud_rate)
         except:
-            self.ser = serial.Serial('/dev/ttyACM1', self.baud_rate)
+            self.ser = Serial('/dev/ttyACM1', self.baud_rate)
             self.port = '/dev/ttyACM1'
         self.flush()
         self.buf = []
@@ -41,9 +41,9 @@ class Arduino:
 
     def __del__(self):
         self.ser.close()
-        self.reset_pin.off()
+        # self.reset_pin.off()
         sleep(0.01)
-        self.reset_pin.on()
+        # self.reset_pin.on()
 
     def open(self):
         self.write("RasPi:Ready;")

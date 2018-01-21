@@ -13,7 +13,7 @@ class Request:
     """
 
     def __init__(self, q):
-        self.arduino = None
+        self.arduino = Arduino()
         self.q = q  # キューの生成
         self.vals = {}  # データ入れ
 

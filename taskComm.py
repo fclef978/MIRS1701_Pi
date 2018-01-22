@@ -1,34 +1,47 @@
-from task import Task
-from request import req
-from time import sleep
+from ptask import ProcessTask
+from request import Request
+from time import sleep, time
 
 import logging
 
 
-class Communication(Task):
+class Communication(ProcessTask):
     """
-    Arduinoとの通信タスクです。一定周期でポーリングや命令の送信を行います。
+    Arduinoとの通信タスクです。ポーリングや命令の送信を行います。
     """
-    INTERVAL = 0.01
+    INTERVAL = 0.1
 
     def __init__(self):
         """
         コンストラクタです。
         """
         self.logger = logging.getLogger(__name__)
-        Task.__init__(self)
+        self.set_queue()
+        ProcessTask.__init__(self)
+        self.req = Request(self.q)
     
     def work(self):
         """
         主となる関数です。
         :return: None
         """
-        req.get()
-        req.put()
+        self.req.get()
+        self.send(self.req.vals)
+        self.req.put()
+        # print("debug")
 
 if __name__ == '__main__':
     comm = Communication()
+    p = comm.set_pipe()
+    q = comm.q
     comm.start()
-    while True:
-        print(req.vals)
+    print('launched')
+    for _ in range(5):
+        if p.poll():
+            print(p.recv())
+            if _ == 3:
+                q.put(["reset"])
+        else:
+            print(None)
         sleep(1)
+    comm.stop()

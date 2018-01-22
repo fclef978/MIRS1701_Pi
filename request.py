@@ -1,6 +1,7 @@
+import pyximport; pyximport.install()
 from queue import Queue
 from arduino import Arduino
-from time import sleep
+from time import sleep, time
 
 
 class Request:
@@ -11,9 +12,9 @@ class Request:
     taskMainからはvalsとorder()にアクセスされ、taskCommからはget()とput()にアクセスされます。
     """
 
-    def __init__(self):
+    def __init__(self, q):
         self.arduino = Arduino()
-        self.q = Queue()  # キューの生成
+        self.q = q  # キューの生成
         self.vals = {}  # データ入れ
 
     def get(self):
@@ -22,18 +23,12 @@ class Request:
         :return: None
         """
         while True:
+            # start = time()
             tmp = self.arduino.receive()
+            # print(time()-start)
             if not tmp:
                 break
             self.vals[tmp[0]] = float(tmp[1])
-
-    def order(self, cmd):
-        """
-        キューへコマンドを挿入します。
-        :param cmd: Arduinoコマンド
-        :return: None
-        """
-        self.q.put(cmd)  # エンキュー
 
     def put(self):
         """
@@ -46,11 +41,10 @@ class Request:
             cmd = self.q.get()  # キューから取り出す
             self.arduino.send(cmd)  # 型チェックしたほうがいいじゃないの？
         self.arduino.arduino_update()
-        
-req = Request()  # このグローバル変数を各モジュールが操作します。
 
 if __name__ == '__main__':
-    req.order(['Straight', 50, 100])
+    req = Request()
+    req.order(['Straight', 10, 10])
     req.get()
     print(req.vals)
     req.put()

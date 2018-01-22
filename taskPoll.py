@@ -1,29 +1,36 @@
-from uss import uss
-from task import Task
+from uss import Uss
+from ptask import ProcessTask
+from time import sleep
 
-import logging
 
-class Poll(Task):
+class Poll(ProcessTask):
     """
     超音波センサから値を取得するタスクです。一定周期でポーリングを行います。
     """
-    INTERVAL = 0.1
 
-    def __init__(self):
+    def __init__(self, pipe=None):
         """
         コンストラクタです。
         """
-        self.logger = logging.getLogger(__name__)
-        Task.__init__(self)
+        ProcessTask.__init__(self)
+        self.uss = Uss()
 
     def work(self):
         """
         主となる関数です。
         :return: None
         """
-        uss.get()
+        self.uss.get()
+        self.send(self.uss.vals)
 
 if __name__ == '__main__':
     poll = Poll()
+    p = poll.set_pipe()
     poll.start()
     print('launched')
+    for _ in range(5):
+        if p.poll():
+            print(p.recv())
+        else:
+            print(None)
+        sleep(1)

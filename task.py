@@ -12,7 +12,7 @@ class Task(Thread, metaclass=ABCMeta):
     タスクを開始するにはstart()を実行してください。
     """
 
-    INTERVAL = 1  # 周期を設定する変数です。オーバーライドしてください。
+    INTERVAL = 1  # 周期を設定する定数です。オーバーライドしてください。
 
     def __init__(self):
         """

@@ -3,8 +3,9 @@
 # 2017-08-26
 # 2017-08-26
 
-import serial
-from time import sleep
+from serial import Serial
+from time import sleep, time
+# from gpio import IO
 import os
 
 
@@ -17,15 +18,17 @@ class ArduinoOpenError(Exception):
 class Arduino:
 
     def __init__(self):
+        # self.reset_pin = IO(IO.RESET, IO.OUT)
+        # self.reset_pin.on()
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
             self.port = '/dev/ttyACM0'
-        self.baud_rate = 2000000
+        self.baud_rate = 500000
         try:
-            self.ser = serial.Serial(self.port, self.baud_rate)
+            self.ser = Serial(self.port, self.baud_rate)
         except:
-            self.ser = serial.Serial('/dev/ttyACM1', 115200)
+            self.ser = Serial('/dev/ttyACM1', self.baud_rate)
             self.port = '/dev/ttyACM1'
         self.flush()
         self.buf = []
@@ -37,9 +40,10 @@ class Arduino:
         print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
-        cmd = ['reset']
-        self.send(cmd)
         self.ser.close()
+        # self.reset_pin.off()
+        sleep(0.01)
+        # self.reset_pin.on()
 
     def open(self):
         self.write("RasPi:Ready;")
@@ -62,7 +66,6 @@ class Arduino:
 
     def send(self, cmd_data):
         ser_data = self.encode(cmd_data)
-        print(ser_data)
         self.write(ser_data)
 
     def arduino_update(self):
@@ -110,6 +113,8 @@ class Arduino:
             ser_data = "RM:4;VL:{0};VR:{1};".format(cmd_data[1], cmd_data[2])
         elif cmd == "battery":
             ser_data = "RM:10;BA:{0};BB:{1};".format(cmd_data[1], cmd_data[2])
+        elif cmd == "turn":
+            ser_data = "RM:5;TS:{0};TA:{1};TR:{2};TD:{3};".format(cmd_data[1], cmd_data[2], cmd_data[3], cmd_data[4])
         elif cmd == "reset":
             ser_data = "RM:100;"
         else:

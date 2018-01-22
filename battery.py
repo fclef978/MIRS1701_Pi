@@ -3,15 +3,17 @@
 
 class BatteryVoltageDiffError(Exception):
 
-    def __init__(self, diff):
+    def __init__(self, diff, a, b):
         self.diff = diff
+        self.a = a
+        self.b = b
 
     def __str__(self):
         return """
-        Battery Voltage Difference is {0}V.
+        Battery Voltage Difference is {0}V. A = {1}V, B = {2}V.
         It is Dangerous because it is more than 1.0V!!
         This robot cannot start...
-        """.format(self.diff)
+        """.format(self.diff, self.a, self.b)
 
 
 class Battery:
@@ -25,7 +27,7 @@ class Battery:
     def __init__(self, a, b):
         self.set_values(a, b)
         if self.diff > 1.0:
-            raise BatteryVoltageDiffError(self.diff)
+            raise BatteryVoltageDiffError(self.diff, a, b)
         self.isAOn = False
         self.isBOn = False
         self.isInit = True

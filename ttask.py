@@ -36,6 +36,7 @@ class PeriodicTask(Thread, metaclass=ABCMeta):
         周期INTERVALでイベントを送り、work()を実行します。
         :return: None
         """
+        Thread(target=self.init).start()  # work()を実行するタスクの生成
         while self.alive:  # 生存してたらループ
             start = time()
             Thread(target=self.work).start()  # work()を実行するタスクの生成
@@ -44,6 +45,15 @@ class PeriodicTask(Thread, metaclass=ABCMeta):
 
     @abstractclassmethod
     def work(self):
+        """
+        タスクの本体です。周期INTERVALで実行されます。
+        抽象メソッドです。
+        :return: None
+        """
+        pass
+
+    @abstractclassmethod
+    def init(self):
         """
         タスクの本体です。周期INTERVALで実行されます。
         抽象メソッドです。

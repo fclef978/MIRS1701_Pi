@@ -47,9 +47,13 @@ class Main(PeriodicTask):
         self.cmds = []
         self.recv()
         self.movement.set_val(True, self.uss)
+        # cmd = self.movement.straight()
         cmd = self.movement.straight()
         self.cmds += cmd
+        print(self.uss[5:8])
+        # self.cmds += self.movement.straight()
         self.batt_check()
+        # print(self.cmds)
         self.cmds_send()
         
     def cmd_append(self, cmd):

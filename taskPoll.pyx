@@ -1,3 +1,4 @@
+import pyximport; pyximport.install()
 from uss import Uss
 from ptask import ProcessTask
 from time import sleep
@@ -7,6 +8,8 @@ class Poll(ProcessTask):
     """
     超音波センサから値を取得するタスクです。一定周期でポーリングを行います。
     """
+    
+    INTERVAL = 0.01
 
     def __init__(self, pipe=None):
         """

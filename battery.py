@@ -31,6 +31,7 @@ class Battery:
         self.isAOn = False
         self.isBOn = False
         self.isInit = True
+        print("A{0}V, B{1}V".format(a, b))
 
     def generate_command(self, a, b):
         self.set_values(a, b)

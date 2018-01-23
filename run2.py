@@ -7,10 +7,10 @@ class Run():
     USS_RADIUS = 19
     USS_DIST = 30  # MIRSの中心から超音波センサまでの距離[cm]
     USS_DIFF = 6
-    Kp = 50
-    Ki = 1
-    Kd = 1
-    TARGET_DIST = 0.4  # 目標となる壁との距離[m]
+    Kp = 0.4
+    Ki = 0.01
+    Kd = 0
+    TARGET_DIST = 50  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]
     USS_DICT_LIST = ["f", "sf", "s", "sb", "b"]
 
@@ -19,9 +19,10 @@ class Run():
         self.vel_left_sum = 0
         self.vel_right_sum = 0
         self.uss = {}
-        self.speed = 15
+        self.speed = 20
         self.cmd_prev = []
         self.pid = PID((Run.Kp, Run.Ki, Run.Kd), 0.1, Run.TARGET_DIST)
+        self.pid_th = PID((0.3, 0, 0), 0.1, 0)
 
     def set_val(self, is_left, uss):
         self.isLeft = is_left
@@ -38,8 +39,13 @@ class Run():
 
     def straight(self):
         speed_mod = self.pid.calc(self.calc_dist())  # 近いと正、遠いと負
+        agl = self.calc_angle()
+        speed_mod -= self.pid_th.calc(agl)
+        if (agl >= 10 and speed_mod < 0) or (agl <= -10 and speed_mod > 0):
+            speed_mod = 0
+        speed_mod = int(speed_mod)
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
-        return self.is_duplicate_cmd([["velocity", speed_l, speed_r]])
+        return [["velocity", speed_l, speed_r]]
 
     def is_duplicate_cmd(self, cmd):
         if self.cmd_prev == cmd:

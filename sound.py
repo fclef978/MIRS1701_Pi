@@ -1,4 +1,5 @@
 import subprocess
+from gpio import IO
 
 
 class Sound():
@@ -8,6 +9,7 @@ class Sound():
         self.dic = ['-x','/var/lib/mecab/dic/open-jtalk/naist-jdic']
         self.htsVoice=['-m','/usr/share/hts-voice/mei/mei_normal.htsvoice']
         self.speed=['-r','1.0']
+        self.sp_ssw = IO(IO.SP_SSW, IO.IN)
         
     def talk(self, text):
         """
@@ -29,6 +31,11 @@ class Sound():
         aplay = ['aplay','-q','./wav/'+name]
         wr = subprocess.Popen(aplay)
 
+    def speak_help(self):
+        self.sp_ssw.on()
+        self.say(name='help.wav')
+        self.sp_ssw.off()
+
     def say_corner(self):
         self.say(name='corner.wav')
 
@@ -43,5 +50,5 @@ class Sound():
 
 if __name__ == "__main__":
     s = Sound()
-    s.generate_wave("停止します", 'stop.wav')
+    s.generate_wave("助けてください", 'help.wav')
     s.say_stop()

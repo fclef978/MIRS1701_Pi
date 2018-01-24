@@ -5,6 +5,7 @@ import time
 class IO:
     PIN = [11, 13, 15, 19, 21, 23, 29, 31]
     RESET = 32
+    SP_SSW = 7
 
     IN = GPIO.IN
     OUT = GPIO.OUT

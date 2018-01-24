@@ -19,13 +19,15 @@ class Arduino:
 
     def __init__(self):
         self.reset_pin = IO(IO.RESET, IO.OUT)
+        # self.reset_pin.off()
+        # sleep(0.01)
         self.reset_pin.on()
         sleep(0.01)
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
             self.port = '/dev/ttyACM0'
-        self.baud_rate = 500000
+        self.baud_rate = 250000
         try:
             self.ser = Serial(self.port, self.baud_rate)
         except:

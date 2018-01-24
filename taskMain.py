@@ -29,7 +29,11 @@ class Main(PeriodicTask):
         PeriodicTask.__init__(self)
 
     def init(self):
-        self.recv()
+        sleep(3)
+        self.cmds = []
+        while self.req == {} or self.uss == []:
+            self.recv()
+            sleep(0.01)
         self.batt = Battery(self.req["btA"], self.req["btB"])
         self.movement = Run()
         for pin in IO.PIN:
@@ -42,13 +46,10 @@ class Main(PeriodicTask):
         :return: None
         """
         self.cmds = []
-        self.recv()
         self.movement.set_val(True, self.uss)
         # cmd = self.movement.straight()
-        cmd = self.movement.straight()
-        self.cmds += cmd
-        print(self.uss[5:8])
-        # self.cmds += self.movement.straight()
+        if self.req["mode"] == 0:
+            self.cmds += [["turn", 10, 10, 10 ,1]]
         self.batt_check()
         # print(self.cmds)
         self.cmds_send()
@@ -69,6 +70,7 @@ class Main(PeriodicTask):
 
     def cmds_send(self):
         for cmd in self.cmds:
+            print(cmd)
             self.q.put(cmd)
 
 if __name__ == '__main__':

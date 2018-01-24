@@ -40,7 +40,7 @@ class Request:
         while not self.q.empty():  # キューが空じゃなかったらループ
             cmd = self.q.get()  # キューから取り出す
             self.arduino.send(cmd)  # 型チェックしたほうがいいじゃないの？
-        self.arduino.arduino_update()
+            self.arduino.arduino_update()
 
 if __name__ == '__main__':
     req = Request()

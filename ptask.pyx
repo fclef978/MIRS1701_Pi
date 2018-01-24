@@ -3,7 +3,7 @@ from multiprocessing import Process, Pipe, Queue, Event
 from time import sleep
 
 
-class ProcessTask(Process):
+class ProcessTask(Process, metaclass=ABCMeta):
 
     INTERVAL = 1
 

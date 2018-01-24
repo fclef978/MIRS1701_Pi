@@ -24,17 +24,14 @@ class Main(PeriodicTask):
         self.uss = []
         self.req = {}
         self.q = q
-        
-        sleep(1)  # 先に起動すると困る
-        PeriodicTask.__init__(self)
-        
         self.cmds = []
-        
+        self.ms = []
+        PeriodicTask.__init__(self)
+
+    def init(self):
         self.recv()
         self.batt = Battery(self.req["btA"], self.req["btB"])
         self.movement = Run()
-        
-        self.ms = []
         for pin in IO.PIN:
             self.ms.append(IO(pin, IO.IN, True))
         self.ms = tuple(self.ms)

@@ -70,4 +70,3 @@ class Run():
     def calc_dist(self):
         tmp = self.calc_ratio()
         return tmp * (self.uss["s"] + Run.USS_RADIUS)
-    

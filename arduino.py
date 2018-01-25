@@ -27,7 +27,7 @@ class Arduino:
             self.port = 'COM4'
         elif os.name == 'posix':
             self.port = '/dev/ttyACM0'
-        self.baud_rate = 250000
+        self.baud_rate = 230400
         try:
             self.ser = Serial(self.port, self.baud_rate)
         except:

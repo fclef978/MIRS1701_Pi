@@ -8,7 +8,7 @@ class Run():
     USS_DIST = 30  # MIRSの中心から超音波センサまでの距離[cm]
     USS_DIFF = 6
     Kp = 0.4
-    Ki = 0.01
+    Ki = 0
     Kd = 0
     TARGET_DIST = 50  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]

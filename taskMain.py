@@ -29,7 +29,6 @@ class Main(PeriodicTask):
         PeriodicTask.__init__(self)
 
     def init(self):
-        sleep(3)
         self.cmds = []
         while self.req == {} or self.uss == []:
             self.recv()
@@ -46,12 +45,12 @@ class Main(PeriodicTask):
         :return: None
         """
         self.cmds = []
+        self.recv()
         self.movement.set_val(True, self.uss)
-        # cmd = self.movement.straight()
-        if self.req["mode"] == 0:
-            self.cmds += [["turn", 10, 10, 10 ,1]]
+        self.cmds += self.movement.straight()
         self.batt_check()
-        # print(self.cmds)
+        print(self.uss)
+        print(self.movement.uss)
         self.cmds_send()
         
     def cmd_append(self, cmd):

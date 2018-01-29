@@ -12,7 +12,7 @@ class Run():
     Kd = 0
     TARGET_DIST = 50  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]
-    USS_DICT_LIST = ["f", "sf", "s", "sb", "b"]
+    USS_DICT_LIST = ["f", "sf", "s", "sb"]
 
     def __init__(self):
         self.isLeft = True
@@ -26,16 +26,7 @@ class Run():
 
     def set_val(self, is_left, uss):
         self.isLeft = is_left
-        self.uss["f"] = uss[0]
-        self.uss["b"] = uss[4]
-        if self.isLeft:
-            self.uss["sf"] = uss[7]
-            self.uss["s"] = uss[6]
-            self.uss["sb"] = uss[5]
-        else:
-            self.uss["sf"] = uss[1]
-            self.uss["s"] = uss[2]
-            self.uss["sb"] = uss[3]
+        self.uss = uss
 
     def straight(self):
         speed_mod = self.pid.calc(self.calc_dist())  # 近いと正、遠いと負

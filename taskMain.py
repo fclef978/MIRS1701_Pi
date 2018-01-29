@@ -3,6 +3,8 @@ from time import sleep
 from battery import Battery
 from run2 import Run
 from gpio import IO
+from state import State
+from sound import Sound
 
 import logging
 
@@ -26,6 +28,9 @@ class Main(PeriodicTask):
         self.q = q
         self.cmds = []
         self.ms = []
+        self.state = State()
+        self.is_left = True
+        self.is_init = True
         PeriodicTask.__init__(self)
 
     def init(self):
@@ -46,12 +51,66 @@ class Main(PeriodicTask):
         """
         self.cmds = []
         self.recv()
-        self.movement.set_val(True, self.uss)
-        self.cmds += self.movement.straight()
+        uss = self.deside_uss_dir()
+        self.movement.set_val(self.is_left, uss)
+        self.state.uss = uss
+        self.state.sns = self.req
+        self.state.isLeft = self.is_left
+        state = self.state.state
+
+        if state == "init":
+            self.state.judge()
+        elif state == "straight":
+            self.cmds += self.movement.straight()
+            self.state.judge()
+        elif state == "turn":
+            if self.is_init:
+                self.cmds += [["turn", 30, 90, Run.TARGET_DIST, int(self.is_left)]]
+                self.is_init = False
+            else:
+                if self.arduino_is_stop():
+                    self.is_init = True
+                    self.state.judge()
+        """
+        elif state == "change":
+            if self.is_init:
+                self.cmds += ["turn", 30, 90, 0, int(not self.is_left)]
+                self.cmds += ["straight", self.movement.speed, uss["os"] - Run.TARGET_DIST]
+                self.is_init = False
+            else:
+                if self.arduino_is_stop():
+                    self.is_init = True
+            if uss["f"] < 50:
+                self.sound.talk("もちてをいれかえてください")
+                self.cmds += ["turn", 30, 90, 0, int(self.is_left)]
+                self.state.judge()
+         """
+                
+        print(self.req["jsX"])
         self.batt_check()
-        print(self.uss)
-        print(self.movement.uss)
         self.cmds_send()
+
+    def arduino_is_stop(self):
+        if self.req["mode"] == 0:
+            True
+        else:
+            False
+
+    def deside_uss_dir(self):
+        uss = {}
+        uss["f"] = self.uss[0]
+        uss["b"] = self.uss[4]
+        if self.is_left:
+            uss["sf"] = self.uss[7]
+            uss["s"] = self.uss[6]
+            uss["sb"] = self.uss[5]
+            uss["os"] = self.uss[2]
+        else:
+            uss["sf"] = self.uss[1]
+            uss["s"] = self.uss[2]
+            uss["sb"] = self.uss[3]
+            uss["os"] = self.uss[6]
+        return uss
         
     def cmd_append(self, cmd):
         if cmd is None:

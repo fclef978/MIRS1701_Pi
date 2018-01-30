@@ -21,7 +21,7 @@ class State:
             self.state = "avoid"
 
     def avoid(self):
-        if  self.data.uss["f"] > 100:
+        if self.data.uss["f"] > 100:
             self.state = "straight"
 
     def change(self):

@@ -1,10 +1,9 @@
 from ttask import PeriodicTask
 from time import sleep
 from battery import Battery
-from run2 import Run
+from run import Run
 from gpio import IO
-from state import State
-from sound import Sound
+from databox import DataBox
 
 import logging
 
@@ -28,9 +27,9 @@ class Main(PeriodicTask):
         self.q = q
         self.cmds = []
         self.ms = []
-        self.state = State()
         self.is_left = True
         self.is_init = True
+        self.data = DataBox()
         PeriodicTask.__init__(self)
 
     def init(self):
@@ -39,7 +38,7 @@ class Main(PeriodicTask):
             self.recv()
             sleep(0.01)
         self.batt = Battery(self.req["btA"], self.req["btB"])
-        self.movement = Run()
+        self.movement = Run(self.data)
         for pin in IO.PIN:
             self.ms.append(IO(pin, IO.IN, True))
         self.ms = tuple(self.ms)
@@ -47,70 +46,15 @@ class Main(PeriodicTask):
     def work(self):
         """
         主となる関数です。
+        シンプルに実装したい。
         :return: None
         """
         self.cmds = []
         self.recv()
-        uss = self.deside_uss_dir()
-        self.movement.set_val(self.is_left, uss)
-        self.state.uss = uss
-        self.state.sns = self.req
-        self.state.isLeft = self.is_left
-        state = self.state.state
-
-        if state == "init":
-            self.state.judge()
-        elif state == "straight":
-            self.cmds += self.movement.straight()
-            self.state.judge()
-        elif state == "turn":
-            if self.is_init:
-                self.cmds += [["turn", 30, 90, Run.TARGET_DIST, int(self.is_left)]]
-                self.is_init = False
-            else:
-                if self.arduino_is_stop():
-                    self.is_init = True
-                    self.state.judge()
-        """
-        elif state == "change":
-            if self.is_init:
-                self.cmds += ["turn", 30, 90, 0, int(not self.is_left)]
-                self.cmds += ["straight", self.movement.speed, uss["os"] - Run.TARGET_DIST]
-                self.is_init = False
-            else:
-                if self.arduino_is_stop():
-                    self.is_init = True
-            if uss["f"] < 50:
-                self.sound.talk("もちてをいれかえてください")
-                self.cmds += ["turn", 30, 90, 0, int(self.is_left)]
-                self.state.judge()
-         """
-                
-        print(self.req["jsX"])
+        self.data.set_value(self.uss, self.req, self.is_left)
+        self.cmds += self.movement.execute()
         self.batt_check()
         self.cmds_send()
-
-    def arduino_is_stop(self):
-        if self.req["mode"] == 0:
-            True
-        else:
-            False
-
-    def deside_uss_dir(self):
-        uss = {}
-        uss["f"] = self.uss[0]
-        uss["b"] = self.uss[4]
-        if self.is_left:
-            uss["sf"] = self.uss[7]
-            uss["s"] = self.uss[6]
-            uss["sb"] = self.uss[5]
-            uss["os"] = self.uss[2]
-        else:
-            uss["sf"] = self.uss[1]
-            uss["s"] = self.uss[2]
-            uss["sb"] = self.uss[3]
-            uss["os"] = self.uss[6]
-        return uss
         
     def cmd_append(self, cmd):
         if cmd is None:
@@ -128,13 +72,5 @@ class Main(PeriodicTask):
 
     def cmds_send(self):
         for cmd in self.cmds:
-            print(cmd)
+            print(self.data.uss, cmd)
             self.q.put(cmd)
-
-if __name__ == '__main__':
-    main = Main()
-    main.start()
-    print('launched')
-    import time
-    time.sleep(6)
-    main.stop()

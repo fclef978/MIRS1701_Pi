@@ -48,6 +48,14 @@ class Run():
         x = ratio * (s + Run.USS_RADIUS)
         return x, th
 
+    @staticmethod
+    def limit(tgt, u, l):
+        if tgt > u:
+            tgt = u
+        elif tgt < l:
+            tgt = l
+        return tgt
+
 
 class Travel:
     """
@@ -73,23 +81,25 @@ class Straight(Travel):
     """
     壁追従制御
     """
-    Kp = 0.3
+    Kp = 0.5
     Ki = 0
     Kd = 0
 
     def __init__(self, data):
         Travel.__init__(self, data)
-        self.pid = PID((Straight.Kp, Straight.Ki, Straight.Kd), 0.1, Run.TARGET_DIST)
-        self.pid_th = PID((0.3, 0, 0), 0.1, 0)
+        self.pid_angle = PID((Straight.Kp, Straight.Ki, Straight.Kd), 0.1, Run.TARGET_DIST)
+        self.pid_speed = PID((1, 0, 0), 0.1, 0)
         self.speed = 20
         self.is_terminate = True
 
     def generate_command(self):
         x, th = Run.calc_pos(self.data.uss["sf"], self.data.uss["s"], self.data.uss["sb"], self.is_left)
-        speed_mod = self.pid.calc(x)  # 近いと正、遠いと負
-        speed_mod -= self.pid_th.calc(th)
-        if (th >= 10 and speed_mod < 0) or (th <= -10 and speed_mod > 0):
-            speed_mod = 0
+        x = Run.limit(x, Run.TARGET_DIST + 10, Run.TARGET_DIST - 10)
+        tgt_angle = self.pid_angle.calc(x)  # 近いと正、遠いと負
+        speed_mod = self.pid_speed.calc(tgt_angle)
+        print(x, th, tgt_angle, speed_mod)
+        # if (th >= 10 and speed_mod < 0) or (th <= -10 and speed_mod > 0):
+        #     speed_mod = 0
         speed_mod = int(speed_mod)
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
         return [["velocity", speed_l, speed_r]]

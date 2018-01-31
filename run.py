@@ -154,11 +154,11 @@ class Wait(Travel):
 
     def wait_sound(self):
         if self.data.expected == "turn":
-            return "まがるほうこうをにゅうりょくしてください"
+            return "まがりかどです、まがるほうこうをにゅうりょくしてください"
         if self.data.expected == "straight":
             return "まえにたおすとちょくしんをさいかいします"
         if self.data.expected == "avoid":
-            return "しょうがいぶつをかいひします"
+            return "しょうがいぶつです、しょうがいぶつをかいひします"
 
 
 

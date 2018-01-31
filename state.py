@@ -1,14 +1,20 @@
 class State:
 
     def __init__(self, data):
-        self.state = "straight"
+        self.state = "init"
         self.data = data
+        self.is_changed = False
 
     def judge(self):
+        prev = self.state
         self.__getattribute__(self.state)()
+        if not prev == self.state:
+            self.prev = prev
+            self.is_changed = True
 
     def init(self):
-        self.state = "straight"
+        if self.data.ard["jsY"] < 100:  # 左壁右入力
+            self.state = "straight"
 
     def straight(self):
         if self.data.uss["sf"] > 150:

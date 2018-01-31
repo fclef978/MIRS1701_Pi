@@ -20,6 +20,7 @@ class Run():
         self.straight = Straight(data)
         self.turn = Turn(data)
         self.avoid = Avoid(data)
+        self.init = Init(data)
         self.sound = Sound()
         self.state_prev = self.state.state
 
@@ -35,8 +36,7 @@ class Run():
             self.state.judge()
         if self.state.state == "change":
             print(self.data.ard)
-        if not self.state.state == self.state_prev:
-            print("changed")
+        if self.state.is_changed:
             self.__getattribute__(self.state_prev).reset()
         self.state_prev = self.state.state
         return cmd
@@ -87,6 +87,15 @@ class Travel:
     def reset(self):
         self.is_terminate = False
         self.count = 0
+
+
+class Init(Travel):
+    """
+    初期状態
+    """
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
 
 
 class Straight(Travel):

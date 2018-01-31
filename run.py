@@ -144,8 +144,10 @@ class Wait(Travel):
         self.is_terminate = True
 
     def generate_command(self):
-        Run.sound.talk("とまります")
-        Run.sound.talk(self.wait_sound())
+        if self.count == 0:
+            self.count += 1
+            Run.sound.talk("とまります")
+            Run.sound.talk(self.wait_sound())
         return [["stop"]]
 
     def reset(self):
@@ -154,7 +156,7 @@ class Wait(Travel):
 
     def wait_sound(self):
         if self.data.expected == "turn":
-            return "まがりかどです、まがるほうこうをにゅうりょくしてください"
+            return "まがりかどです。まがるほうこうをにゅうりょくしてください"
         if self.data.expected == "straight":
             return "まえにたおすとちょくしんをさいかいします"
         if self.data.expected == "avoid":

@@ -22,7 +22,7 @@ class Arduino:
         # self.reset_pin.off()
         # sleep(0.01)
         self.reset_pin.on()
-        sleep(0.01)
+        sleep(0.1)
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
@@ -43,9 +43,12 @@ class Arduino:
         print("Arduino Opened on {0}".format(self.port))
 
     def __del__(self):
-        self.ser.close()
+        try:
+            self.ser.close()
+        except TypeError:
+            pass
         self.reset_pin.off()
-        sleep(0.01)
+        sleep(1)
         self.reset_pin.on()
 
     def open(self):
@@ -69,6 +72,7 @@ class Arduino:
 
     def send(self, cmd_data):
         ser_data = self.encode(cmd_data)
+        print(ser_data)
         self.write(ser_data)
 
     def arduino_update(self):
@@ -86,17 +90,20 @@ class Arduino:
         return result
 
     def read_str_until(self, terminator):
-        while self.available(1):
-            tmp = self.read_one_byte().decode('utf-8')
-            if tmp == terminator:
-                result = self.buf
-                self.buf =[]
-                break
-            self.buf.append(tmp)
-        else:
-            return False
+        try:
+            while self.available(1):
+                tmp = self.read_one_byte().decode('utf-8')
+                if tmp == terminator:
+                    result = self.buf
+                    self.buf = []
+                    break
+                self.buf.append(tmp)
+            else:
+                return False
 
-        return ''.join(result)
+            return ''.join(result)
+        except UnicodeDecodeError:
+            return ""
 
     def write(self, ser_data):
         self.ser.write(ser_data.encode('ASCII'))

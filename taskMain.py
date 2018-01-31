@@ -1,3 +1,4 @@
+import pyximport; pyximport.install()
 from ttask import PeriodicTask
 from time import sleep
 from battery import Battery
@@ -37,7 +38,10 @@ class Main(PeriodicTask):
         while self.req == {} or self.uss == []:
             self.recv()
             sleep(0.01)
-        self.batt = Battery(self.req["btA"], self.req["btB"])
+        try:
+            self.batt = Battery(self.req["btA"], self.req["btB"])
+        except KeyError:
+            print(self.req)
         self.movement = Run(self.data)
         for pin in IO.PIN:
             self.ms.append(IO(pin, IO.IN, True))
@@ -55,6 +59,7 @@ class Main(PeriodicTask):
         self.cmds += self.movement.execute()
         self.batt_check()
         self.cmds_send()
+        # print(self.data.uss, self.cmds, self.movement.state.state, self.data.ard)
         
     def cmd_append(self, cmd):
         if cmd is None:
@@ -72,5 +77,4 @@ class Main(PeriodicTask):
 
     def cmds_send(self):
         for cmd in self.cmds:
-            print(self.data.uss, cmd)
             self.q.put(cmd)

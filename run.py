@@ -9,7 +9,7 @@ class Run():
     USS_RADIUS = 19
     USS_DIST = 30  # MIRSの中心から超音波センサまでの距離[cm]
     USS_DIFF = 6
-    TARGET_DIST = 50  # 目標となる壁との距離[m]
+    TARGET_DIST = 60  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]
     USS_DICT_LIST = ["f", "sf", "s", "sb"]
 
@@ -19,7 +19,9 @@ class Run():
         self.state = State(data)
         self.straight = Straight(data)
         self.turn = Turn(data)
+        self.avoid = Avoid(data)
         self.sound = Sound()
+        self.state_prev = self.state.state
 
     def execute(self):
         cmds = []
@@ -31,6 +33,12 @@ class Run():
         cmd = tmp.generate_command()
         if tmp.is_terminate:
             self.state.judge()
+        if self.state.state == "change":
+            print(self.data.ard)
+        if not self.state.state == self.state_prev:
+            print("changed")
+            self.__getattribute__(self.state_prev).reset()
+        self.state_prev = self.state.state
         return cmd
 
     def is_duplicate_cmd(self, cmd):
@@ -52,7 +60,7 @@ class Run():
     def limit(tgt, u, l):
         if tgt > u:
             tgt = u
-        elif tgt < l:
+        if tgt < l:
             tgt = l
         return tgt
 
@@ -63,12 +71,12 @@ class Travel:
     """
     def __init__(self, data):
         self.data = data
-        self.is_left = True
         self.is_terminate = False
         self.count = 0
 
     def generate_command(self):
         self.count += 1
+        return []
 
     def is_arduino_stop(self):
         if self.data.ard["mode"] == 0:
@@ -76,32 +84,38 @@ class Travel:
         else:
             return False
 
+    def reset(self):
+        self.is_terminate = False
+        self.count = 0
+
 
 class Straight(Travel):
     """
     壁追従制御
     """
-    Kp = 0.5
-    Ki = 0
-    Kd = 0
+    Kp = -1
+    Ki = 0.0
+    Kd = 0.0
 
     def __init__(self, data):
         Travel.__init__(self, data)
         self.pid_angle = PID((Straight.Kp, Straight.Ki, Straight.Kd), 0.1, Run.TARGET_DIST)
-        self.pid_speed = PID((1, 0, 0), 0.1, 0)
-        self.speed = 20
+        self.pid_speed = PID((-0.4, 0, 0), 0.1, 0)
+        self.speed = 50
         self.is_terminate = True
 
     def generate_command(self):
-        x, th = Run.calc_pos(self.data.uss["sf"], self.data.uss["s"], self.data.uss["sb"], self.is_left)
+        x, th = Run.calc_pos(self.data.uss["sf"], self.data.uss["s"], self.data.uss["sb"], self.data.is_left)
         x = Run.limit(x, Run.TARGET_DIST + 10, Run.TARGET_DIST - 10)
         tgt_angle = self.pid_angle.calc(x)  # 近いと正、遠いと負
-        speed_mod = self.pid_speed.calc(tgt_angle)
-        print(x, th, tgt_angle, speed_mod)
-        # if (th >= 10 and speed_mod < 0) or (th <= -10 and speed_mod > 0):
-        #     speed_mod = 0
+        self.pid_speed.target = tgt_angle
+        speed_mod = self.pid_speed.calc(math.degrees(th))
+        if (math.degrees(th) >= 10 and speed_mod < 0) or (math.degrees(th) <= -10 and speed_mod > 0):
+            speed_mod = 0
         speed_mod = int(speed_mod)
+        print(int(tgt_angle), speed_mod, int(math.degrees(th)), int(x))
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
+        self.is_terminate = True
         return [["velocity", speed_l, speed_r]]
 
 
@@ -115,9 +129,34 @@ class Turn(Travel):
     def generate_command(self):
         if self.count == 0:
             self.count += 1
-            return [["turn", 30, 90, Run.TARGET_DIST, int(self.data.is_left)]]
-        elif self.is_arduino_stop():
+            return [["turn", 30, 90, Run.TARGET_DIST - 20, int(self.data.is_left)]]
+        elif self.count == 1 and self.is_arduino_stop():
+            self.count += 1
+            return [["straight", 50, 40]]
+        elif self.is_arduino_stop() and self.count == 5:
             self.is_terminate = True
             return []
+        elif self.is_arduino_stop():
+            self.count += 1
+            print(self.count)
+            return []
+        else:
+            return []
+
+
+class Avoid(Travel):
+    """
+    障害物回避
+    """
+
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
+
+    def generate_command(self):
+        self.is_terminate = True
+        if self.count == 0:
+            self.count += 1
+            return [["stop"]]
         else:
             return []

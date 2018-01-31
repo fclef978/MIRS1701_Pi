@@ -1,3 +1,4 @@
+import pyximport; pyximport.install()
 from ptask import ProcessTask
 from request import Request
 from time import sleep, time

@@ -25,5 +25,6 @@ if __name__ == '__main__':
     print("Stop Pilot")
     main.stop()
     poll.stop()
+    comm.req.arduino.reset_pin.off()
     comm.stop()
     print("bye")

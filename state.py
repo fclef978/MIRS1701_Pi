@@ -4,12 +4,12 @@ class State:
     LEFT_INPUT_VALUE = 900
     RIGHT_INPUT_VALUE = 100
 
-
     def __init__(self, data):
         self.state = "init"
         self.data = data
         self.is_changed = False
         self.expected = "straight"
+        self.prev = ""
 
     def judge(self):
         prev = self.state
@@ -17,6 +17,8 @@ class State:
         if not prev == self.state:
             self.prev = prev
             self.is_changed = True
+        else:
+            self.is_changed = False
 
     def init(self):
         if self.data.ard["jsY"] < 100:
@@ -26,24 +28,29 @@ class State:
         if self.data.uss["sf"] > 150:
             self.state = "wait"
             self.expected = "turn"
-        if self.data.is_left and self.data.ard["jsX"] < 100:  # 左壁右入力
+        elif self.data.is_left and self.data.ard["jsX"] < 100:  # 左壁右入力
             self.state = "change"
-        if not self.data.is_left and self.data.ard["jsX"] > 900:  # 右壁左入力
+        elif not self.data.is_left and self.data.ard["jsX"] > 900:  # 右壁左入力
             self.state = "change"
-        if self.data.uss["f"] < 40:
+        elif self.data.uss["f"] < 40:
             self.state = "wait"
             self.expected = "avoid"
-        if self.data.ard["jsY"] < 900:
+        elif self.data.ard["jsY"] > 800:
             self.state = "wait"
             self.expected = "straight"
 
     def wait(self):
         if self.expected == "turn":
-            if self.data.is_left and self.data.ard["jsX"] > 900:
+            if self.data.is_left and self.data.ard["jsX"] > 800:
                 self.state = "turn"
+        elif self.expected == "straight":
+            if self.data.ard["jsY"] < 200:
+                self.state = "straight"
+        elif self.expected == "avoid":
+            if self.data.ard["jsY"] < 200:
+                self.state = "straight"
         else:
             self.state = self.expected
-
 
     def avoid(self):
         if self.data.uss["f"] > 40:

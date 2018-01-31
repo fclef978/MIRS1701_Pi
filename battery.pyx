@@ -26,8 +26,8 @@ class Battery:
 
     def __init__(self, a, b):
         self.set_values(a, b)
-        if self.diff > 1.0:
-            raise BatteryVoltageDiffError(self.diff, a, b)
+        # if self.diff > 1.0:
+        #     raise BatteryVoltageDiffError(self.diff, a, b)
         self.isAOn = False
         self.isBOn = False
         self.isInit = True

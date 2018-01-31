@@ -21,6 +21,7 @@ class Run():
         self.turn = Turn(data)
         self.avoid = Avoid(data)
         self.init = Init(data)
+        self.wait = Wait(data)
         self.sound = Sound()
         self.state_prev = self.state.state
 
@@ -36,8 +37,10 @@ class Run():
             self.state.judge()
         if self.state.state == "change":
             print(self.data.ard)
+        print(self.state.prev, self.state.state, self.state.expected)
         if self.state.is_changed:
             self.__getattribute__(self.state_prev).reset()
+            self.state.is_changed = False
         self.state_prev = self.state.state
         return cmd
 
@@ -110,7 +113,7 @@ class Straight(Travel):
         Travel.__init__(self, data)
         self.pid_angle = PID((Straight.Kp, Straight.Ki, Straight.Kd), 0.1, Run.TARGET_DIST)
         self.pid_speed = PID((-0.4, 0, 0), 0.1, 0)
-        self.speed = 50
+        self.speed = 40
         self.is_terminate = True
 
     def generate_command(self):
@@ -122,10 +125,27 @@ class Straight(Travel):
         if (math.degrees(th) >= 10 and speed_mod < 0) or (math.degrees(th) <= -10 and speed_mod > 0):
             speed_mod = 0
         speed_mod = int(speed_mod)
+        speed_mod = Run.limit(speed_mod, 5, -5)
         print(int(tgt_angle), speed_mod, int(math.degrees(th)), int(x))
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
         self.is_terminate = True
         return [["velocity", speed_l, speed_r]]
+
+
+class Wait(Travel):
+    """
+    曲がり角曲がる
+    """
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
+
+    def generate_command(self):
+        return [["stop"]]
+
+    def reset(self):
+        Travel.reset(self)
+        self.is_terminate = True
 
 
 class Turn(Travel):
@@ -136,18 +156,18 @@ class Turn(Travel):
         Travel.__init__(self, data)
 
     def generate_command(self):
+        print("isast {0}".format(self.is_arduino_stop()))
         if self.count == 0:
             self.count += 1
-            return [["turn", 30, 90, Run.TARGET_DIST - 20, int(self.data.is_left)]]
-        elif self.count == 1 and self.is_arduino_stop():
+            return [["turn", 30, 90, Run.TARGET_DIST - 40, int(self.data.is_left)]]
+        elif self.count == 10 and self.is_arduino_stop():
             self.count += 1
             return [["straight", 50, 40]]
-        elif self.is_arduino_stop() and self.count == 5:
+        elif self.is_arduino_stop() and self.count == 20:
             self.is_terminate = True
             return []
         elif self.is_arduino_stop():
             self.count += 1
-            print(self.count)
             return []
         else:
             return []

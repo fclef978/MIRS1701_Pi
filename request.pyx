@@ -22,11 +22,13 @@ class Request:
         値を取得します。取得した値はvalsへ格納されます。
         :return: None
         """
+        start = time()
         while True:
-            # start = time()
             tmp = self.arduino.receive()
-            # print(time()-start)
+            to = time() - start
             if not tmp:
+                break
+            if (not len(tmp) == 2) or to > 0.1:
                 break
             self.vals[tmp[0]] = float(tmp[1])
 

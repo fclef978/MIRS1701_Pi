@@ -22,7 +22,7 @@ class Arduino:
         # self.reset_pin.off()
         # sleep(0.01)
         self.reset_pin.on()
-        sleep(0.1)
+        sleep(0.5)
         if os.name == 'nt':
             self.port = 'COM4'
         elif os.name == 'posix':
@@ -100,7 +100,6 @@ class Arduino:
                 self.buf.append(tmp)
             else:
                 return False
-
             return ''.join(result)
         except UnicodeDecodeError:
             return ""

@@ -7,6 +7,9 @@ class DataBox:
         self.uss = {}
         self.ard = {}
         self.is_left = True
+        self.state = "init"
+        self.expected = "straight"
+        self.prev = ""
 
     def set_value(self, uss, ard, is_left):
         self.is_left = is_left

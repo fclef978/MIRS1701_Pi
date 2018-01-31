@@ -12,6 +12,7 @@ class Run():
     TARGET_DIST = 60  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]
     USS_DICT_LIST = ["f", "sf", "s", "sb"]
+    sound = Sound()
 
     def __init__(self, data):
         self.data = data
@@ -22,10 +23,12 @@ class Run():
         self.avoid = Avoid(data)
         self.init = Init(data)
         self.wait = Wait(data)
-        self.sound = Sound()
         self.state_prev = self.state.state
 
     def execute(self):
+        self.data.state = self.state.state
+        self.data.prev = self.state.prev
+        self.data.expected = self.state.expected
         cmds = []
         cmds += self.run()
         return cmds
@@ -141,11 +144,22 @@ class Wait(Travel):
         self.is_terminate = True
 
     def generate_command(self):
+        Run.sound.talk("とまります")
+        Run.sound.talk(self.wait_sound())
         return [["stop"]]
 
     def reset(self):
         Travel.reset(self)
         self.is_terminate = True
+
+    def wait_sound(self):
+        if self.data.expected == "turn":
+            return "まがるほうこうをにゅうりょくしてください"
+        if self.data.expected == "straight":
+            return "まえにたおすとちょくしんをさいかいします"
+        if self.data.expected == "avoid":
+            return "しょうがいぶつをかいひします"
+
 
 
 class Turn(Travel):
@@ -159,9 +173,11 @@ class Turn(Travel):
         print("isast {0}".format(self.is_arduino_stop()))
         if self.count == 0:
             self.count += 1
+            Run.sound.talk("まがります")
             return [["turn", 30, 90, Run.TARGET_DIST - 40, int(self.data.is_left)]]
         elif self.count == 10 and self.is_arduino_stop():
             self.count += 1
+            Run.sound.talk("ちょくしんします")
             return [["straight", 50, 40]]
         elif self.is_arduino_stop() and self.count == 20:
             self.is_terminate = True

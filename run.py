@@ -1,7 +1,9 @@
 import math
 from pid import PID
-from state import State
 from sound import Sound
+from state import State
+
+sound = Sound()
 
 
 class Run():
@@ -12,8 +14,7 @@ class Run():
     TARGET_DIST = 60  # 目標となる壁との距離[m]
     INTERVAL = 0.01  # 制御周期[s]
     USS_DICT_LIST = ["f", "sf", "s", "sb"]
-    sound = Sound()
-
+    
     def __init__(self, data):
         self.data = data
         self.cmd_prev = []
@@ -23,6 +24,8 @@ class Run():
         self.avoid = Avoid(data)
         self.init = Init(data)
         self.wait = Wait(data)
+        self.help = Help(data)
+        self.un_touch = Touch(data)
         self.state_prev = self.state.state
 
     def execute(self):
@@ -99,6 +102,7 @@ class Init(Travel):
     """
     初期状態
     """
+
     def __init__(self, data):
         Travel.__init__(self, data)
         self.is_terminate = True
@@ -118,8 +122,19 @@ class Straight(Travel):
         self.pid_speed = PID((-0.4, 0, 0), 0.1, 0)
         self.speed = 40
         self.is_terminate = True
+        self.dist_count = 0
+        self.dist_prev = 0
 
     def generate_command(self):
+        dist = (self.data.ard["distL"] + self.data.ard["distR"]) / 2
+        if self.count == 0:
+            self.count += 1
+            sound.say_straight()
+        if (dist % 500 < 10 or dist % 500 > 490) and dist > 10:
+            if self.dist_prev + 20 < dist:
+                self.dist_count += 1
+                sound.say_dist(self.dist_count)
+            self.dist_prev = dist
         x, th = Run.calc_pos(self.data.uss["sf"], self.data.uss["s"], self.data.uss["sb"], self.data.is_left)
         x = Run.limit(x, Run.TARGET_DIST + 10, Run.TARGET_DIST - 10)
         tgt_angle = self.pid_angle.calc(x)  # 近いと正、遠いと負
@@ -129,7 +144,6 @@ class Straight(Travel):
             speed_mod = 0
         speed_mod = int(speed_mod)
         speed_mod = Run.limit(speed_mod, 5, -5)
-        print(int(tgt_angle), speed_mod, int(math.degrees(th)), int(x))
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
         self.is_terminate = True
         return [["velocity", speed_l, speed_r]]
@@ -137,8 +151,10 @@ class Straight(Travel):
 
 class Wait(Travel):
     """
-    曲がり角曲がる
+    待機
+    走行を停止させ、入力を待ちます。
     """
+
     def __init__(self, data):
         Travel.__init__(self, data)
         self.is_terminate = True
@@ -146,28 +162,72 @@ class Wait(Travel):
     def generate_command(self):
         if self.count == 0:
             self.count += 1
-            Run.sound.talk("とまります")
-            Run.sound.talk(self.wait_sound())
-        return [["stop"]]
+            sound.say_stop()
+            return [["stop"]]
+        elif self.count == 10:
+            self.count += 1
+            sound.say_wait(self.data.expected)
+        else:
+            self.count += 1
+        return []
 
     def reset(self):
         Travel.reset(self)
         self.is_terminate = True
 
-    def wait_sound(self):
-        if self.data.expected == "turn":
-            return "まがりかどです。まがるほうこうをにゅうりょくしてください"
-        if self.data.expected == "straight":
-            return "まえにたおすとちょくしんをさいかいします"
-        if self.data.expected == "avoid":
-            return "しょうがいぶつです、しょうがいぶつをかいひします"
 
+class Help(Travel):
+    """
+    救援要請
+    走行を停止させ、救援要請を行います。
+    """
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
+
+    def generate_command(self):
+        if self.count % 30 == 0:
+            self.count += 1
+            sound.say_help()
+            return [["stop"]]
+        else:
+            self.count += 1
+        return []
+
+    def reset(self):
+        Travel.reset(self)
+        self.is_terminate = True
+
+
+class Touch(Travel):
+    """
+    ハーネスを話した時の動作
+    走行を停止させ、ユーザーに通知します。
+    """
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
+
+    def generate_command(self):
+        if self.count % 30 == 0:
+            self.count += 1
+            sound.say_touch()
+            return [["stop"]]
+        else:
+            self.count += 1
+        return []
+
+    def reset(self):
+        Travel.reset(self)
+        self.is_terminate = True
 
 
 class Turn(Travel):
     """
     曲がり角曲がる
+    90度旋回し、その後に壁との距離分直進します。
     """
+
     def __init__(self, data):
         Travel.__init__(self, data)
 
@@ -175,11 +235,11 @@ class Turn(Travel):
         print("isast {0}".format(self.is_arduino_stop()))
         if self.count == 0:
             self.count += 1
-            Run.sound.talk("まがります")
+            sound.say_turn()
             return [["turn", 30, 90, Run.TARGET_DIST - 40, int(self.data.is_left)]]
         elif self.count == 10 and self.is_arduino_stop():
             self.count += 1
-            Run.sound.talk("ちょくしんします")
+            sound.say_straight()
             return [["straight", 50, 40]]
         elif self.is_arduino_stop() and self.count == 20:
             self.is_terminate = True
@@ -194,6 +254,7 @@ class Turn(Travel):
 class Avoid(Travel):
     """
     障害物回避
+    よけれない
     """
 
     def __init__(self, data):
@@ -204,6 +265,7 @@ class Avoid(Travel):
         self.is_terminate = True
         if self.count == 0:
             self.count += 1
+            sound.say_straight()
             return [["stop"]]
         else:
             return []

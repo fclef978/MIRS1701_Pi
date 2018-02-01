@@ -1,8 +1,6 @@
+from time import time
+
 class State:
-    FRONT_INPUT_VALUE = 100
-    BACK_INPUT_VALUE = 900
-    LEFT_INPUT_VALUE = 900
-    RIGHT_INPUT_VALUE = 100
 
     def __init__(self, data):
         self.state = "init"
@@ -10,10 +8,18 @@ class State:
         self.is_changed = False
         self.expected = "straight"
         self.prev = ""
+        self.timer = 0
 
     def judge(self):
         prev = self.state
         self.__getattribute__(self.state)()
+        if self.sns_check("help"):  # 救援要請ボタンが押されていたら救援要請に入る
+            self.state = "help"
+        if not self.state == "help":
+            if self.sns_check("touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
+                if self.timer == 0:  # タイマーセット
+                    self.timer = time()
+                self.state = "un_touch"
         if not prev == self.state:
             self.prev = prev
             self.is_changed = True
@@ -21,39 +27,48 @@ class State:
             self.is_changed = False
 
     def init(self):
-        if self.data.ard["jsY"] < 100:
+        if self.sns_check("jsU"):
             self.state = "straight"
 
     def straight(self):
-        if self.data.uss["sf"] > 150:
+        """
+        直進走行状態からの状態分岐です。
+        何かを検知したら一度走行を停止し、次になる状態をexpectedに代入します。
+        """
+        if self.sns_check("corner"):  # 曲がり角
             self.state = "wait"
             self.expected = "turn"
-        elif self.data.is_left and self.data.ard["jsX"] < 100:  # 左壁右入力
+        elif self.data.is_left and self.sns_check("jsR"):  # 左壁右入力
             self.state = "change"
-        elif not self.data.is_left and self.data.ard["jsX"] > 900:  # 右壁左入力
+        elif not self.data.is_left and self.sns_check("jsL"):  # 右壁左入力
             self.state = "change"
-        elif self.data.uss["f"] < 40:
+        elif self.sns_check("obstacle"):  # 障害物
             self.state = "wait"
             self.expected = "avoid"
-        elif self.data.ard["jsY"] > 800:
+        elif self.sns_check("jsD"):  # 一時停止
             self.state = "wait"
             self.expected = "straight"
 
     def wait(self):
-        if self.expected == "turn":
-            if self.data.is_left and self.data.ard["jsX"] > 800:
+        """
+        待機状態からの状態分岐です。
+        どの状態の前かを判断し、入力が行われると次の状態へ移行します。
+        waitと言いながらstopも入ってるので分離したほうがいいかも?
+        """
+        if self.expected == "turn":  # 曲がる前の待機
+            if self.data.is_left and self.sns_check("jsL"):  # 左壁左入力のとき曲がる、右壁右入力の時が考えられてない
                 self.state = "turn"
         elif self.expected == "straight":
-            if self.data.ard["jsY"] < 200:
+            if self.sns_check("jsU"):
                 self.state = "straight"
         elif self.expected == "avoid":
-            if self.data.ard["jsY"] < 200:
+            if self.sns_check("jsF") and not self.sns_check("obstacle"):
                 self.state = "straight"
         else:
             self.state = self.expected
 
     def avoid(self):
-        if self.data.uss["f"] > 40:
+        if not self.sns_check("obstacle"):
             self.state = "straight"
 
     def change(self):
@@ -61,3 +76,42 @@ class State:
 
     def turn(self):
         self.state = "straight"
+
+    def help(self):
+        if self.prev == "un_touch":
+            if not self.sns_check("touch"):  # un_touchから時間経過で来た場合、握ったらwaitに戻る
+                self.state = "wait"
+        elif not self.sns_check("help"):  # 救援がいらなくなったら、waitに戻る
+            self.state = "wait"
+
+    def un_touch(self):
+        if not self.sns_check("touch"):  # ハーネスを握ったらwaitに戻る
+            self.state = "wait"
+            self.timer = 0
+        elif time() - self.timer > 30:  # 時間経過でhelpへ移行
+            self.state = "help"
+            self.timer = 0
+
+    def sns_check(self, check_name):
+        """
+        センサーや入力から、判定してほしい項目(check_name)をチェックするメソッド
+        センサーと入力のチェックは別のメソッドにした方がわかりやすいかも?
+        :param check_name:
+        :return:True or False
+        """
+        if check_name == "jsL":  # ジョイスティック左入力
+            return self.data.ard["jsX"] > 900
+        elif check_name == "jsR":  # ジョイスティック右入力
+            return self.data.ard["jsX"] < 100
+        elif check_name == "jsD":  # ジョイスティック前入力
+            return self.data.ard["jsY"] > 800
+        elif check_name == "jsU":  # ジョイスティック後ろ入力
+            return self.data.ard["jsY"] < 200
+        elif check_name == "obstacle":  # 障害物
+            return self.data.uss["f"] < 40
+        elif check_name == "corner":  # 曲がり角
+            return self.data.uss["sf"] > 150
+        elif check_name == "help":  # 救援要請ボタン
+            return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
+        elif check_name == "touch":  # 静電容量式タッチセンサ
+            return self.data.ard["cap"] == 0  # 離れていたらTrue、名前はun_touchとかの方がわかりやすい

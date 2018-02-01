@@ -10,7 +10,7 @@ class Communication(ProcessTask):
     """
     Arduinoとの通信タスクです。ポーリングや命令の送信を行います。
     """
-    INTERVAL = 0.01
+    INTERVAL = 0.11
 
     def __init__(self):
         """
@@ -20,7 +20,7 @@ class Communication(ProcessTask):
         self.set_queue()
         ProcessTask.__init__(self)
         self.req = Request(self.q)
-    
+
     def work(self):
         """
         主となる関数です。
@@ -28,7 +28,14 @@ class Communication(ProcessTask):
         """
         self.req.get()
         self.send(self.req.vals)
+        if self.req.btnL.state:
+            if not self.q.empty():
+                self.q.get()
+            if not self.q.empty():
+                self.q.get()
+            self.q.put(["stop"])
         self.req.put()
+
 
 if __name__ == '__main__':
     comm = Communication()

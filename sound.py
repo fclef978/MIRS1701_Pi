@@ -42,13 +42,15 @@ class Sound():
         sleep(0.1)
         # self.say(name='help.wav')
         self.talk("テスト").wait()
+
+    def sperker_off(self):
         self.sp_ssw.off()
 
     def say_init(self):
         self.say("init.wav")
 
     def say_dist(self, dist_count):
-        self.say("dist_" + str(dist_count) + ".wav")
+        self.say("dist_" + str(dist_count * 5) + ".wav")
 
     def say_straight(self):
         self.say("straight.wav")
@@ -68,20 +70,29 @@ class Sound():
     def say_stop(self):
         self.say(name='stop.wav')
 
+    def say_help(self):
+        self.sp_ssw.on()
+        sleep(0.1)
+        self.say(name='help.wav')
+
+    def say_touch(self):
+        self.sp_ssw.on()
+        sleep(0.1)
+        self.say(name='touch.wav')
+
     def say_wait(self, expected):
+        """
+        待機時の音声通知です。
+        次の状態によって、流す音声を変更します。
+        :param expected:
+        """
         if expected == "turn":
             self.say(name='corner.wav')
-        if expected == "avoid":
+        elif expected == "avoid":
             self.say(name='obstacle.wav')
 
 
 if __name__ == "__main__":
     s = Sound()
-    s.speak_help()
-    s.generate_wave("ちょくしんをかいしするにはまえをにゅうりょくしてください", "init.wav")
-    s.generate_wave("ちょくしんをさいかいするにはまえをにゅうりょくしてください", "straight_wait.wav")
-    s.generate_wave("めーとる、けいかしました", "dist.wav")
-    s.generate_wave("ちょくしんします", "straight.wav")
-    s.generate_wave("まがります", "turn.wav")
-    for i in range(1, 4, 5):
-        s.generate_wave(str(i) + "めーとる、すすみました", "dist_" + str(i) + ".wav")
+    s.say_touch()
+    sleep(10)

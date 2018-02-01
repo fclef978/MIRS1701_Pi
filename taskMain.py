@@ -38,10 +38,12 @@ class Main(PeriodicTask):
         while self.req == {} or self.uss == []:
             self.recv()
             sleep(0.01)
-        try:
-            self.batt = Battery(self.req["btA"], self.req["btB"])
-        except KeyError:
-            print(self.req)
+        while True:
+            try:
+                self.batt = Battery(self.req["btA"], self.req["btB"])
+            except KeyError:
+                continue
+            break
         self.movement = Run(self.data)
         for pin in IO.PIN:
             self.ms.append(IO(pin, IO.IN, True))

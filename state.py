@@ -127,5 +127,5 @@ class State:
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
         elif check_name == "un_touch":  # 静電容量式タッチセンサ
-            return self.data.ard["cap"] == 1  # 離れていたらTrueを返す(capが0)、デバッグのため現在反転
+            return self.data.ard["cap"] == 0  # 離れていたらTrueを返す(capが0)、デバッグのため現在反転
 

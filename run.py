@@ -132,19 +132,27 @@ class Straight(Travel):
         self.is_terminate = True
         self.dist_count = 0
         self.dist_prev = 0
+        self.correction_val = 1
+        self.dist = 0
 
     def generate_command(self):
-        dist = (self.data.ard["distL"] + self.data.ard["distR"]) / 2
+        self.dist = (self.data.ard["distL"] + self.data.ard["distR"]) / 2
         if self.count == 0:
             self.count += 1
-            sound.say_straight()
-        if (dist % 500 < 10 or dist % 500 > 490) and dist > 10:
-            if self.dist_prev + 20 < dist:
+            if self.data.is_left:  # 壁による制御値の補正
+                self.correction_val = 1
+            else:
+                self.correction_val = -1
+            if not self.data.prev == "turn":
+                sound.say_straight()  # 直進音声
+        if (self.dist % 500 < 10 or self.dist % 500 > 490) and self.dist > 10:
+            if self.dist_prev + 20 < self.dist:
                 self.dist_count += 1
-                sound.say_dist(self.dist_count)
-            self.dist_prev = dist
+                sound.say_dist(self.dist_count)  # 5メートルごとの音声
+            self.dist_prev = self.dist
         x, th = Run.calc_pos(self.data.uss["sf"], self.data.uss["s"], self.data.uss["sb"], self.data.is_left)
         x = Run.limit(x, Run.TARGET_DIST + 10, Run.TARGET_DIST - 10)
+        th *= self.correction_val
         tgt_angle = self.pid_angle.calc(x)  # 近いと正、遠いと負
         self.pid_speed.target = tgt_angle
         speed_mod = self.pid_speed.calc(math.degrees(th))
@@ -152,9 +160,17 @@ class Straight(Travel):
             speed_mod = 0
         speed_mod = int(speed_mod)
         speed_mod = Run.limit(speed_mod, 5, -5)
+        speed_mod *= self.correction_val
         speed_l, speed_r = self.speed + speed_mod, self.speed - speed_mod
         self.is_terminate = True
         return [["velocity", speed_l, speed_r]]
+
+    def reset(self):
+        Travel.reset(self)
+        self.dist_prev = 0
+        self.correction_val = 1
+        self.dist = 0
+        self.dist_count = 0
 
 
 class Wait(Travel):
@@ -253,7 +269,7 @@ class Turn(Travel):
             self.count += 1
             sound.say_straight()
             return [["straight", 30, 40]]
-        elif self.is_arduino_stop() and self.count == 20:
+        elif self.is_arduino_stop() and self.count == 15:
             self.is_terminate = True
             return []
         elif self.is_arduino_stop():

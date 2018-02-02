@@ -31,6 +31,7 @@ class Main(PeriodicTask):
         self.is_left = True
         self.is_init = True
         self.data = DataBox()
+        self.data.is_left = self.is_left
         PeriodicTask.__init__(self)
 
     def init(self):
@@ -55,9 +56,10 @@ class Main(PeriodicTask):
         シンプルに実装したい。
         :return: None
         """
+        print(self.data.ard)
         self.cmds = []
         self.recv()
-        self.data.set_value(self.uss, self.req, self.is_left)
+        self.data.set_value(self.uss, self.req)
         self.cmds += self.movement.execute()
         self.batt_check()
         self.cmds_send()

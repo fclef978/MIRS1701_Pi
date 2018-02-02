@@ -1,5 +1,6 @@
 from time import time
 
+
 class State:
 
     def __init__(self, data):
@@ -55,9 +56,11 @@ class State:
         どの状態の前かを判断し、入力が行われると次の状態へ移行します。
         waitと言いながらstopも入ってるので分離したほうがいいかも?
         """
-        if self.expected == "turn":  # 曲がる前の待機
-            if self.data.is_left and self.sns_check("jsL"):  # 左壁左入力のとき曲がる、右壁右入力の時が考えられてない
+        if self.expected == "turn":  # 交差点の動作
+            if (self.data.is_left and self.sns_check("jsL")) or (not self.data.is_left and self.sns_check("jsR")):  # 曲がる
                 self.state = "turn"
+            if self.sns_check("jsU") and self.sns_check("cross_straight"):
+                self.state = "cross"
         elif self.expected == "straight":
             if self.sns_check("jsU"):
                 self.state = "straight"
@@ -76,6 +79,10 @@ class State:
 
     def turn(self):
         self.state = "straight"
+
+    def cross(self):
+        if not self.sns_check("corner"):
+            self.state = "straight"
 
     def help(self):
         if self.prev == "un_touch":
@@ -111,6 +118,8 @@ class State:
             return self.data.uss["f"] < 40
         elif check_name == "corner":  # 曲がり角
             return self.data.uss["sf"] > 150
+        elif check_name == "cross_straight":
+            return self.data.uss["f"] > 200  # 曲がり角に直進の道はあるか
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
         elif check_name == "un_touch":  # 静電容量式タッチセンサ

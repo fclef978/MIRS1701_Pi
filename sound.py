@@ -46,6 +46,10 @@ class Sound():
     def sperker_off(self):
         self.sp_ssw.off()
 
+    def sperker_on(self):
+        self.sp_ssw.on()
+        sleep(0.5)
+
     def say_init(self):
         self.say("init.wav")
 
@@ -71,13 +75,9 @@ class Sound():
         self.say(name='stop.wav')
 
     def say_help(self):
-        self.sp_ssw.on()
-        sleep(0.1)
         self.say(name='help.wav')
 
     def say_touch(self):
-        self.sp_ssw.on()
-        sleep(0.1)
         self.say(name='touch.wav')
 
     def say_wait(self, expected):

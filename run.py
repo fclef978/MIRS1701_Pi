@@ -21,6 +21,7 @@ class Run():
         self.state = State(data)
         self.straight = Straight(data)
         self.turn = Turn(data)
+        self.cross = Cross(data)
         self.avoid = Avoid(data)
         self.init = Init(data)
         self.wait = Wait(data)
@@ -164,7 +165,8 @@ class Wait(Travel):
         if self.count == 0:
             self.count += 1
             sound.sperker_off()
-            sound.say_stop()
+            if self.data.prev == "help" or self.data.prev == "un_touch":
+                sound.say_stop()
             return [["stop"]]
         elif self.count == 10:
             self.count += 1
@@ -190,6 +192,7 @@ class Help(Travel):
     def generate_command(self):
         if self.count % 30 == 0:
             self.count += 1
+            sound.sperker_on()
             sound.say_help()
             return [["stop"]]
         else:
@@ -213,6 +216,7 @@ class Touch(Travel):
     def generate_command(self):
         if self.count % 30 == 0:
             self.count += 1
+            sound.sperker_on()
             sound.say_touch()
             return [["stop"]]
         else:
@@ -251,6 +255,30 @@ class Turn(Travel):
             return []
         else:
             return []
+
+
+class Cross(Travel):
+    """
+    待機
+    走行を停止させ、入力を待ちます。
+    """
+
+    def __init__(self, data):
+        Travel.__init__(self, data)
+        self.is_terminate = True
+
+    def generate_command(self):
+        if self.count == 0:
+            self.count += 1
+            sound.say_straight()
+            return [["straight", 50, 500]]
+        else:
+            self.count += 1
+        return []
+
+    def reset(self):
+        Travel.reset(self)
+        self.is_terminate = True
 
 
 class Avoid(Travel):

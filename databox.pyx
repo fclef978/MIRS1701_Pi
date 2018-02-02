@@ -11,8 +11,7 @@ class DataBox:
         self.expected = "straight"
         self.prev = ""
 
-    def set_value(self, uss, ard, is_left):
-        self.is_left = is_left
+    def set_value(self, uss, ard):
         self.deside_uss_dir(uss)
         self.ard = ard
 

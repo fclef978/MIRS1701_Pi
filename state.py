@@ -76,18 +76,7 @@ class State:
 
     def avoid(self):
         if not self.sns_check("obstacle"):
-            self.data.step = 0
             self.state = "straight"
-        """
-        elif self.sns_check("corner") and self.data.step == 0:
-            self.data.step = 1
-        elif not self.sns_check("corner") and self.data.step == 1:
-            self.data.step = 2
-        elif not self.sns_check("corner") and self.data.step == 2:
-            self.data.step = 3
-        elif self.sns_check("obstacle"):
-            self.data.step = 4
-        """
 
     def change(self):
         self.state = "straight"

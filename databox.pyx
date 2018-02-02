@@ -10,6 +10,7 @@ class DataBox:
         self.state = "init"
         self.expected = "straight"
         self.prev = ""
+        self.step = 0
 
     def set_value(self, uss, ard):
         self.deside_uss_dir(uss)

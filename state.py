@@ -65,14 +65,29 @@ class State:
             if self.sns_check("jsU"):
                 self.state = "straight"
         elif self.expected == "avoid":
-            if self.sns_check("jsU") and not self.sns_check("obstacle"):
-                self.state = "straight"
+            if self.sns_check("jsU"):
+                if not self.sns_check("obstacle"):
+                    self.state = "straight"
+                else:
+                    self.state = "avoid"
+                    self.data.step = 0
         else:
             self.state = self.expected
 
     def avoid(self):
         if not self.sns_check("obstacle"):
+            self.data.step = 0
             self.state = "straight"
+        """
+        elif self.sns_check("corner") and self.data.step == 0:
+            self.data.step = 1
+        elif not self.sns_check("corner") and self.data.step == 1:
+            self.data.step = 2
+        elif not self.sns_check("corner") and self.data.step == 2:
+            self.data.step = 3
+        elif self.sns_check("obstacle"):
+            self.data.step = 4
+        """
 
     def change(self):
         self.state = "straight"
@@ -119,7 +134,7 @@ class State:
         elif check_name == "corner":  # 曲がり角
             return self.data.uss["sf"] > 150
         elif check_name == "cross_straight":
-            return self.data.uss["f"] > 200  # 曲がり角に直進の道はあるか
+            return self.data.uss["f"] > 150  # 曲がり角に直進の道はあるか
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
         elif check_name == "un_touch":  # 静電容量式タッチセンサ

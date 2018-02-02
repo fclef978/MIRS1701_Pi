@@ -109,6 +109,12 @@ class Init(Travel):
         self.is_terminate = True
         sound.sperker_off()
 
+    def generate_command(self):
+        if self.count == 0:
+            self.count += 1
+            self.data.is_left = self.data.uss["os"] > self.data.uss["s"]
+        return []
+
 
 class Straight(Travel):
     """
@@ -165,7 +171,7 @@ class Wait(Travel):
         if self.count == 0:
             self.count += 1
             sound.sperker_off()
-            if self.data.prev == "help" or self.data.prev == "un_touch":
+            if not (self.data.prev == "help" or self.data.prev == "un_touch"):
                 sound.say_stop()
             return [["stop"]]
         elif self.count == 10:
@@ -246,7 +252,7 @@ class Turn(Travel):
         elif self.count == 10 and self.is_arduino_stop():
             self.count += 1
             sound.say_straight()
-            return [["straight", 50, 40]]
+            return [["straight", 30, 40]]
         elif self.is_arduino_stop() and self.count == 20:
             self.is_terminate = True
             return []
@@ -271,10 +277,8 @@ class Cross(Travel):
         if self.count == 0:
             self.count += 1
             sound.say_straight()
-            return [["straight", 50, 500]]
-        else:
-            self.count += 1
-        return []
+        return [["velocity", 30, 30]]
+
 
     def reset(self):
         Travel.reset(self)
@@ -289,7 +293,8 @@ class Avoid(Travel):
 
     def __init__(self, data):
         Travel.__init__(self, data)
-        self.is_terminate = True
+        # self.is_terminate = True
+
 
     def generate_command(self):
         self.is_terminate = True
@@ -299,3 +304,51 @@ class Avoid(Travel):
             return [["stop"]]
         else:
             return []
+    """
+
+    def generate_command(self):
+        if self.count == 0:
+            self.count += 1
+            sound.say_turn()
+            return [["rotation", 30, 90, int(not self.data.is_left)]]  # 回転
+        elif self.count == 10:
+            self.count += 1
+            self.is_terminate = True
+            sound.say_straight()
+            return [["straight", 30, 200]]  # 横が障害物を外れるまで直進
+        elif self.count == 11 and self.data.step == 1:
+            self.count += 1
+            self.is_terminate = False
+            sound.say_turn()
+            return [["rotation", 30, 90, int(self.data.is_left)]]  # 横が障害物をはずれたら回転
+        elif self.count == 20:
+            self.count += 1
+            self.is_terminate = True
+            sound.say_straight()
+            return [["straight", 30, 200]]  # 障害物を感知するまで直進
+        elif self.count == 21 and self.data.step == 2:
+            self.count += 1
+            self.is_terminate = True
+            sound.say_straight()
+            return [["straight", 30, 200]]  # 横が障害物を外れるまで直進
+        elif self.count == 22 and self.data.step == 3:
+            self.count += 1
+            self.is_terminate = False
+            sound.say_turn()
+            return [["rotation", 30, 90, int(self.data.is_left)]]  # 横が障害物をはずれたら回転
+        elif self.count == 30:
+            self.count += 1
+            self.is_terminate = True
+            sound.say_straight()
+            return [["straight", 30, 200]]  # 正面に壁が現れるれるまで直進
+        elif self.count == 31 and self.data.step == 4:
+            self.count += 1
+            self.is_terminate = False
+            sound.say_turn()
+            return [["rotation", 30, 90, int(not self.data.is_left)]]  # 回転して直進に戻る
+        elif self.is_arduino_stop():
+            self.count += 1
+            return []
+        else:
+            return []
+        """

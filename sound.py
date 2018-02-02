@@ -81,11 +81,6 @@ class Sound():
         self.say(name='touch.wav')
 
     def say_wait(self, expected):
-        """
-        待機時の音声通知です。
-        次の状態によって、流す音声を変更します。
-        :param expected:
-        """
         if expected == "turn":
             self.say(name='corner.wav')
         elif expected == "avoid":

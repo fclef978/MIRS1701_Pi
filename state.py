@@ -16,7 +16,7 @@ class State:
         if self.sns_check("help"):  # 救援要請ボタンが押されていたら救援要請に入る
             self.state = "help"
         if not self.state == "help":
-            if self.sns_check("touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
+            if self.sns_check("un_touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
                 if self.timer == 0:  # タイマーセット
                     self.timer = time()
                 self.state = "un_touch"
@@ -62,7 +62,7 @@ class State:
             if self.sns_check("jsU"):
                 self.state = "straight"
         elif self.expected == "avoid":
-            if self.sns_check("jsF") and not self.sns_check("obstacle"):
+            if self.sns_check("jsU") and not self.sns_check("obstacle"):
                 self.state = "straight"
         else:
             self.state = self.expected
@@ -79,13 +79,13 @@ class State:
 
     def help(self):
         if self.prev == "un_touch":
-            if not self.sns_check("touch"):  # un_touchから時間経過で来た場合、握ったらwaitに戻る
+            if not self.sns_check("un_touch"):  # un_touchから時間経過で来た場合、握ったらwaitに戻る
                 self.state = "wait"
         elif not self.sns_check("help"):  # 救援がいらなくなったら、waitに戻る
             self.state = "wait"
 
     def un_touch(self):
-        if not self.sns_check("touch"):  # ハーネスを握ったらwaitに戻る
+        if not self.sns_check("un_touch"):  # ハーネスを握ったらwaitに戻る
             self.state = "wait"
             self.timer = 0
         elif time() - self.timer > 30:  # 時間経過でhelpへ移行
@@ -113,5 +113,6 @@ class State:
             return self.data.uss["sf"] > 150
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
-        elif check_name == "touch":  # 静電容量式タッチセンサ
-            return self.data.ard["cap"] == 0  # 離れていたらTrue、名前はun_touchとかの方がわかりやすい
+        elif check_name == "un_touch":  # 静電容量式タッチセンサ
+            return self.data.ard["cap"] == 1  # 離れていたらTrueを返す(capが0)、デバッグのため現在反転
+

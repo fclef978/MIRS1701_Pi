@@ -106,6 +106,7 @@ class Init(Travel):
     def __init__(self, data):
         Travel.__init__(self, data)
         self.is_terminate = True
+        sound.sperker_off()
 
 
 class Straight(Travel):
@@ -162,6 +163,7 @@ class Wait(Travel):
     def generate_command(self):
         if self.count == 0:
             self.count += 1
+            sound.sperker_off()
             sound.say_stop()
             return [["stop"]]
         elif self.count == 10:

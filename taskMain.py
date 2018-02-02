@@ -61,8 +61,17 @@ class Main(PeriodicTask):
         print(self.data.uss)
         self.cmds = []
         self.recv()
-        self.data.set_value(self.uss, self.req)
-        self.cmds += self.movement.execute()
+        if self.req["jsY"] > 800:
+            self.cmds += [["velocity", -30, -30]]
+        elif self.req["jsY"] < 200:
+            self.cmds += [["velocity", 30, 30]]
+        elif self.req["jsX"] < 100:
+            self.cmds += [["velocity", 15, -15]]
+        elif self.req["jsX"] > 800:
+            self.cmds += [["velocity", -15, 15]]
+        else:
+            self.cmds += [["stop"]]
+
         self.batt_check()
         self.cmds_send()
         # print(self.data.uss, self.cmds, self.movement.state.state, self.data.ard)

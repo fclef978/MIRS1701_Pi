@@ -16,14 +16,14 @@ class State:
         self.__getattribute__(self.state)()
         if self.sns_check("help"):  # 救援要請ボタンが押されていたら救援要請に入る
             if self.prev != "help" and self.prev != "un_touch":
-                self.state = self.expected
+                self.expected = self.state
             self.state = "help"
         if not self.state == "help":
             if self.sns_check("un_touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
                 if self.timer == 0:  # タイマーセット
                     self.timer = time()
                 if self.prev != "help" and self.prev != "un_touch":
-                    self.state = self.expected
+                    self.expected = self.state
                 self.state = "un_touch"
         if not prev == self.state:
             self.prev = prev

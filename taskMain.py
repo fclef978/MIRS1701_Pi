@@ -57,8 +57,9 @@ class Main(PeriodicTask):
         :return: None
         """
         print(self.data.is_left)
-        #print(self.data.ard)
-        print(self.data.uss)
+        #print(self.req["jsX"], self.req["jsY"])
+        print(self.req["cap"])
+        #print(self.data.uss)
         self.cmds = []
         self.recv()
         self.data.set_value(self.uss, self.req)

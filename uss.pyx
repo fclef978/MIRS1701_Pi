@@ -38,7 +38,7 @@ class SRF02:
         data = i2c.read_i2c_block_data(self.addr, 0x02, 2)
         data = (data[0] << 8) | data[1]
         if data < SRF02.MIN_DIST or data > SRF02.MAX_DIST:
-            return False                                    #超音波センサの測定不可区間
+            return SRF02.MAX_DIST                                   #超音波センサの測定不可区間
         else:
             return data                   #壁からの距離をかえす
 

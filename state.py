@@ -82,11 +82,14 @@ class State:
         self.state = "straight"
 
     def turn(self):
-        self.state = "straight"
+        if self.sns_check("catch_wall"):
+            self.state = "straight"
+            self.expected = "straight"
 
     def cross(self):
-        if not self.sns_check("corner"):
+        if self.sns_check("catch_wall"):
             self.state = "straight"
+            self.expected = "straight"
 
     def help(self):
         if self.prev == "un_touch":
@@ -122,10 +125,12 @@ class State:
             return self.data.uss["f"] < 40
         elif check_name == "corner":  # 曲がり角
             return self.data.uss["sf"] > 150
+        elif check_name == "catch_wall":  # 壁があるか判定
+            return self.data.uss["sb"] < 150  # 壁があったらTrue
         elif check_name == "cross_straight":
             return self.data.uss["f"] > 150  # 曲がり角に直進の道はあるか
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
         elif check_name == "un_touch":  # 静電容量式タッチセンサ
-            return self.data.ard["cap"] == 0  # 離れていたらTrueを返す(capが0)、デバッグのため現在反転
+            return self.data.ard["cap"] == 1  # 離れていたらTrueを返す(capが0)、デバッグのため現在反転
 

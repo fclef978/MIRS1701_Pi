@@ -143,7 +143,7 @@ class Straight(Travel):
                 self.correction_val = 1
             else:
                 self.correction_val = -1
-            if not self.data.prev == "turn":
+            if not self.data.prev == "turn" or not self.data.prev == "cross":
                 sound.say_straight()  # 直進音声
         if (self.dist % 500 < 10 or self.dist % 500 > 490) and self.dist > 10:
             if self.dist_prev + 20 < self.dist:
@@ -268,10 +268,10 @@ class Turn(Travel):
         elif self.count == 10 and self.is_arduino_stop():
             self.count += 1
             sound.say_straight()
-            return [["straight", 30, 40]]
-        elif self.is_arduino_stop() and self.count == 15:
-            self.is_terminate = True
             return []
+        elif self.count == 11:
+            self.is_terminate = True
+            return [["velocity", 30, 30]]
         elif self.is_arduino_stop():
             self.count += 1
             return []

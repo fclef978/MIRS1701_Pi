@@ -56,22 +56,20 @@ class Main(PeriodicTask):
         シンプルに実装したい。
         :return: None
         """
-        print(self.data.is_left)
-        #print(self.data.ard)
-        print(self.data.uss)
+        print("jsX: " + str(self.req["jsX"]), "jsY: " + str(self.req["jsY"]))
         self.cmds = []
         self.recv()
+        speed = 0
+        speed_mod = 0
         if self.req["jsY"] > 800:
-            self.cmds += [["velocity", -30, -30]]
-        elif self.req["jsY"] < 200:
-            self.cmds += [["velocity", 30, 30]]
-        elif self.req["jsX"] < 100:
-            self.cmds += [["velocity", 15, -15]]
-        elif self.req["jsX"] > 800:
-            self.cmds += [["velocity", -15, 15]]
-        else:
-            self.cmds += [["stop"]]
-
+            speed -= 30
+        if self.req["jsY"] < 200:
+            speed += 30
+        if self.req["jsX"] < 200:
+            speed_mod += 5
+        if self.req["jsX"] > 800:
+            speed_mod -= 5
+        self.cmds += [["velocity", speed - speed_mod, speed + speed_mod]]
         self.batt_check()
         self.cmds_send()
         # print(self.data.uss, self.cmds, self.movement.state.state, self.data.ard)

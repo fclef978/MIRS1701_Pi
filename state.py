@@ -15,15 +15,11 @@ class State:
         prev = self.state
         self.__getattribute__(self.state)()
         if self.sns_check("help"):  # 救援要請ボタンが押されていたら救援要請に入る
-            if self.prev != "help" and self.prev != "un_touch":
-                self.expected = self.state
             self.state = "help"
         if not self.state == "help":
             if self.sns_check("un_touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
                 if self.timer == 0:  # タイマーセット
                     self.timer = time()
-                if self.prev != "help" and self.prev != "un_touch":
-                    self.expected = self.state
                 self.state = "un_touch"
         if not prev == self.state:
             self.prev = prev
@@ -132,7 +128,7 @@ class State:
         elif check_name == "catch_wall":  # 壁があるか判定
             return self.data.uss["sb"] < 150  # 壁があったらTrue
         elif check_name == "cross_straight":
-            return self.data.uss["f"] > 150  # 曲がり角に直進の道はあるか
+            return self.data.uss["f"] < 150  # 曲がり角に直進の道はあるか
         elif check_name == "help":  # 救援要請ボタン
             return self.data.ard["tglR"]  # 救援が必要ならTrue、いらないならFalse
         elif check_name == "un_touch":  # 静電容量式タッチセンサ

@@ -61,13 +61,13 @@ class Main(PeriodicTask):
         self.recv()
         speed = 0
         speed_mod = 0
-        if self.req["jsY"] > 800:
+        if self.req["jsY"] > 700:
             speed -= 30
-        if self.req["jsY"] < 200:
+        if self.req["jsY"] < 300:
             speed += 30
-        if self.req["jsX"] < 200:
+        if self.req["jsX"] < 300:
             speed_mod -= 5
-        if self.req["jsX"] > 800:
+        if self.req["jsX"] > 700:
             speed_mod += 5
         self.cmds += [["velocity", speed - speed_mod, speed + speed_mod]]
         self.batt_check()

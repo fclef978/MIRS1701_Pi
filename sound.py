@@ -24,7 +24,7 @@ class Sound():
         outWav = ['-ow', './wav/' + name]
         cmd = self.openJtalk + self.dic + self.htsVoice + self.speed + outWav
         c = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        c.stdin.write(text.encode('utf-8'))
+        c.stdin.__write(text.encode('utf-8'))
         c.stdin.close()
         c.wait()
 
@@ -34,7 +34,7 @@ class Sound():
         except:
             pass
         aplay = ['aplay', '-q', './wav/' + name]
-        self.sp =  subprocess.Popen(aplay)
+        self.sp = subprocess.Popen(aplay)
         return self.sp
 
     def speak_help(self):

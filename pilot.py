@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import pyximport; pyximport.install()
 from taskMain import Main
 from taskPoll import Poll
 from taskComm import Communication

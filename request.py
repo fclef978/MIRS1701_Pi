@@ -1,5 +1,3 @@
-import pyximport; pyximport.install()
-from queue import Queue
 from arduino import Arduino
 from time import sleep, time
 

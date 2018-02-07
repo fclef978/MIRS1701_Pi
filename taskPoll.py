@@ -1,4 +1,3 @@
-import pyximport; pyximport.install()
 from uss import Uss
 from ptask import ProcessTask
 from time import sleep

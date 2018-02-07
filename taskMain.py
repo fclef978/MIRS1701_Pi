@@ -1,4 +1,3 @@
-import pyximport; pyximport.install()
 from ttask import PeriodicTask
 from time import sleep
 from battery import Battery

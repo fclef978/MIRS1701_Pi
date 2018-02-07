@@ -1,9 +1,17 @@
+"""
+Arduinoや超音波センサなどの値を格納し、共有するためのモジュールです。。
+:author: 鈴木宏和
+"""
+
+
 class DataBox:
     """
     受信したデータを格納するクラスです。
     """
-
     def __init__(self):
+        """
+        コンストラクタです。
+        """
         self.uss = {}
         self.ard = {}
         self.is_left = True
@@ -12,10 +20,21 @@ class DataBox:
         self.prev = ""
 
     def set_value(self, uss, ard):
-        self.deside_uss_dir(uss)
+        """
+        値をセットするメソッドです。
+        :param list uss:
+        :param dict ard:
+        :return: なし
+        """
+        self.__deside_uss_dir(uss)
         self.ard = ard
 
-    def deside_uss_dir(self, uss):
+    def __deside_uss_dir(self, uss):
+        """
+        壁が左か右かによって連想配列のキーを変えて代入するメソッドです。
+        :param list uss:
+        :return: なし
+        """
         self.uss["f"] = uss[0]
         self.uss["b"] = uss[4]
         if self.is_left:

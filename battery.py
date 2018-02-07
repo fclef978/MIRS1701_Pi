@@ -1,5 +1,6 @@
 """
 バッテリーを管理するモジュールです。
+
 :author: 鈴木宏和
 """
 
@@ -26,12 +27,14 @@ class Battery:
     バッテリーを管理するクラスです。
     電源電圧を監視し、常に適切な方のバッテリーに切り替えます。
     """
+
     #: 許容電位差を表す属性です。
     __ACCEPTABLE_DIFF = 0.3
 
     def __init__(self, a, b):
         """
         コンストラクタです。
+
         :param float a: バッテリーAの電圧です。
         :param float b: バッテリーBの電圧です。
         """
@@ -46,6 +49,7 @@ class Battery:
     def generate_command(self, a, b):
         """
         バッテリー切り替えコマンドを生成します。
+
         :param a: バッテリーAの電圧です。
         :param b: バッテリーBの電圧です。
         :rtype: list
@@ -65,6 +69,7 @@ class Battery:
     def __judge(self):
         """
         バッテリー切り替えの判定をします。
+
         :rtype: tuple, None
         :return: バッテリーを切り替える場合は長さ2のboolのタプルが返り、切り替えない場合はNoneが返ります。タプルは(左, 右)の順番です。
         """
@@ -94,6 +99,7 @@ class Battery:
     def set_values(self, a, b):
         """
         値をセットします。
+
         :param a: バッテリーAの電圧です。
         :param b: バッテリーA\Bの電圧です。
         :return: なし
@@ -105,6 +111,7 @@ class Battery:
     def __is_a_high(self):
         """
         バッテリー電圧を比較します。
+
         :rtype: bool
         :return: Aの方が高ければTrue、そうでなければFalseを返します。
         """
@@ -113,6 +120,7 @@ class Battery:
     def __calc_volt_diff(self):
         """
         バッテリー電圧差を計算します。
+
         :rtype: float
         :return: 電位差です。
         """

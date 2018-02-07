@@ -1,5 +1,6 @@
 """
-Arduinoや超音波センサなどの値を格納し、共有するためのモジュールです。。
+Arduinoや超音波センサなどの値を格納し、共有するためのモジュールです。
+
 :author: 鈴木宏和
 """
 
@@ -22,6 +23,7 @@ class DataBox:
     def set_value(self, uss, ard):
         """
         値をセットするメソッドです。
+
         :param list uss:
         :param dict ard:
         :return: なし
@@ -32,6 +34,7 @@ class DataBox:
     def __deside_uss_dir(self, uss):
         """
         壁が左か右かによって連想配列のキーを変えて代入するメソッドです。
+
         :param list uss:
         :return: なし
         """

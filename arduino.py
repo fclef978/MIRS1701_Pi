@@ -1,5 +1,6 @@
 """
 Arduinoとの通信をするモジュールです。
+
 :author: 鈴木宏和
 """
 
@@ -53,6 +54,7 @@ class Arduino:
     def __del__(self):
         """
         デストラクタです。ポートを閉じてArduinoをリセットします。
+
         :return: なし
         """
         try:
@@ -66,6 +68,7 @@ class Arduino:
     def __open(self):
         """
         Arduinoとの通信確立をするメソッドです。
+
         :rtype: bool
         :return: 成功したらTrue, 失敗したらFalse
         """
@@ -79,6 +82,7 @@ class Arduino:
     def __flush(self):
         """
         受信バッファを空にするメソッドです。
+
         :return: なし
         """
         self.__ser.reset_input_buffer()
@@ -87,6 +91,7 @@ class Arduino:
         """
         受信バッファのデータ数を返します。
         引数を指定すると、そのバイト分溜まっているか判定します。
+
         :param int num: デフォルト引数で、指定すると、指定したバイト分バッファに溜まっているかの判定になる。
         :rtype: int, bool
         :return: バイト数または判定結果
@@ -101,6 +106,7 @@ class Arduino:
     def send(self, cmd_data):
         """
         Arduinoにコマンドを送信するメソッドです。
+
         :param list cmd_data: コマンドです。
         :return: なし
         """
@@ -111,6 +117,7 @@ class Arduino:
     def arduino_update(self):
         """
         Arduinoにコマンドアップデート信号を送るメソッドです。
+
         :return: なし
         """
         ser_data = self.encode(["update"])
@@ -119,6 +126,7 @@ class Arduino:
     def receive(self):
         """
         Arduinoから情報を受信するメソッドです。
+
         :rtype: list, bool
         :return: 失敗するとFalseを、成功すると文字列の配列を返します。
         """
@@ -130,6 +138,7 @@ class Arduino:
     def __read_one_byte(self):
         """
         バッファから1バイト読み出すメソッドです。
+
         :rtype: bytearray
         :return: 受信したものを返します。(長さ1のbytearrayでエンコーディングはASCII)
         """
@@ -140,6 +149,7 @@ class Arduino:
         """
         指定した文字が現れるまでバッファから読み出します。
         途中で終わってしまった場合、その読みかけの文字列を内部で保存し、次回呼び出し時に先頭に連結します。
+
         :param str terminator: 終了文字です(長さ1のstr)
         :rtype: str
         :return: 受信した文字列です。失敗すると空文字列になります。
@@ -161,6 +171,7 @@ class Arduino:
     def __write(self, ser_data):
         """
         Arduinoに文字列を送信するメソッドです。
+
         :param str ser_data: 送信文字列です。
         :return: なし
         """
@@ -170,6 +181,7 @@ class Arduino:
     def encode(cmd_data):
         """
         コマンド型リストを送信型の文字列に変換します。
+
         :param list cmd_data: コマンドです。
         :rtype: str
         :return: 送信用文字列です。

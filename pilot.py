@@ -5,10 +5,6 @@ from taskPoll import Poll
 from taskComm import Communication
 from time import sleep
 
-import logging
-import logging.config
-logging.config.fileConfig('logging.conf')
-
 
 if __name__ == '__main__':
     poll = Poll()

@@ -10,10 +10,10 @@ class IO:
     IN = GPIO.IN
     OUT = GPIO.OUT
 
-    def __init__(self, port, dir, isPullUp=False):
+    def __init__(self, port, dir, is_pull_up=False):
         self.port = port
         self.dir = dir
-        self.isPullUp = isPullUp
+        self.isPullUp = is_pull_up
         GPIO.setmode(GPIO.BOARD)
         if self.dir == IO.IN:
             if self.isPullUp:

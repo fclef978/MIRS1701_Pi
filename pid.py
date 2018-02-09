@@ -1,3 +1,9 @@
+"""
+PID制御をする際の数値計算をラップするモジュールです。
+
+:author: 鈴木宏和
+"""
+
 from time import sleep
 
 
@@ -5,37 +11,50 @@ class PID:
     """
     PID制御をする際の数値計算をするクラスです。
     """
-
     def __init__(self, gain, dt, target):
-        self.prev = 0
-        self.curr = 0
-        self.sum = 0
-        self.kp, self.ki, self.kd = gain
-        self.dt = dt
+        """
+        コンストラクタです。
+
+        :param tuple gain: Pゲイン,Iゲイン,Dゲインからなる長さ3のタプルです。(P, I, D)の順番です。
+        :param float dt: 制御周期です。単位はsecです。
+        :param float target: 目標値です。
+        """
+        self.__prev = 0
+        self.__curr = 0
+        self.__sum = 0
+        self.__kp, self.__ki, self.__kd = gain
+        self.__dt = dt
         self.target = target
-        self.is_first = True
+        self.__is_first = True
 
     def calc(self, val):
-        self.calc_curr(val)
-        return self.calc_prop() + self.calc_intg() + self.calc_diff()
+        """
+        現在値から出力を計算するメソッドです。
 
-    def calc_curr(self, curr):
-        self.curr = self.target - curr
+        :param float val: 現在値です。
+        :rtype float:
+        :return: PID制御の出力です。
+        """
+        self.__calc_curr(val)
+        return self.__calc_prop() + self.__calc_intg() + self.__calc_diff()
 
-    def calc_prop(self):
-        return self.curr * self.kp
+    def __calc_curr(self, curr):
+        self.__curr = self.target - curr
 
-    def calc_intg(self):
-        self.sum += self.curr
-        return self.sum * self.ki * self.dt
+    def __calc_prop(self):
+        return self.__curr * self.__kp
 
-    def calc_diff(self):
-        if self.is_first:
-            self.is_first = False
+    def __calc_intg(self):
+        self.__sum += self.__curr
+        return self.__sum * self.__ki * self.__dt
+
+    def __calc_diff(self):
+        if self.__is_first:
+            self.__is_first = False
             return 0
-        diff = self.curr - self.prev
-        self.prev = self.curr
-        return diff * self.kd / self.dt
+        diff = self.__curr - self.__prev
+        self.__prev = self.__curr
+        return diff * self.__kd / self.__dt
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+起動および、各種タスクの生成を行うモジュールです。
+
+:author: 鈴木宏和
+"""
+
 from taskMain import Main
 from taskPoll import Poll
 from taskComm import Communication

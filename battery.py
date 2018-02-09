@@ -101,7 +101,7 @@ class Battery:
         値をセットします。
 
         :param a: バッテリーAの電圧です。
-        :param b: バッテリーA\Bの電圧です。
+        :param b: バッテリーBの電圧です。
         :return: なし
         """
         self.a = a

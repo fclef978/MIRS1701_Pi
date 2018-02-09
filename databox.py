@@ -24,8 +24,8 @@ class DataBox:
         """
         値をセットするメソッドです。
 
-        :param list uss:
-        :param dict ard:
+        :param list uss: 超音波センサのデータです。
+        :param dict ard: Arduinoからのデータです。
         :return: なし
         """
         self.__deside_uss_dir(uss)

@@ -1,3 +1,7 @@
+"""
+Arduinoとの通信のラッパーモジュールです。
+"""
+
 from arduino import Arduino
 from time import sleep, time
 
@@ -7,10 +11,14 @@ class Request:
     Arduinoとの通信のラッパーです。
     値の取得はtaskCommからのポーリングで行われます。
     命令の送信はキューを介して行われます。
-    taskMainからはvalsとorder()にアクセスされ、taskCommからはget()とput()にアクセスされます。
     """
 
     def __init__(self, q):
+        """
+        コンストラクタです。
+
+        :param Queue q: 送信データの入ったキューです。
+        """
         self.arduino = Arduino()
         self.q = q  # キューの生成
         self.vals = {}  # データ入れ
@@ -19,8 +27,9 @@ class Request:
 
     def get(self):
         """
-        値を取得します。取得した値はvalsへ格納されます。
-        :return: None
+        値を取得するメソッドです。取得した値はvalsへ格納されます。
+
+        :return: なし
         """
         start = time()
         while True:
@@ -40,8 +49,9 @@ class Request:
 
     def put(self):
         """
-        キュー内のコマンドをArduinoへ送信します。
-        :return: None
+        キュー内のコマンドをArduinoへ送信するメソッドです。
+
+        :return: なし
         """
         if self.q.empty():
             return
@@ -50,16 +60,28 @@ class Request:
             self.arduino.send(cmd)  # 型チェックしたほうがいいじゃないの？
             self.arduino.arduino_update()
 
-    def set_val(self, key, val):
-        self.vals[key] = val
 
+class Button:
+    """
+    コントローラボタンにソフトウェア的にトグル動作をさせるためのクラスです。
 
-class Button():
+    :author: 坂下尚史
+    """
     def __init__(self):
+        """
+        コンストラクタです。
+        """
         self.state = False
         self.prev = 1
 
     def check(self, curr):
+        """
+        現在値からボタンの状態を判定します。
+
+        :param int,bool curr: 現在値です。
+        :rtype: bool
+        :return: 現在のトグル動作の状態です。
+        """
         curr = int(curr)
         if not curr == self.prev:
             if not curr:

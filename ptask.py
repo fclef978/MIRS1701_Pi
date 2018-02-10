@@ -12,15 +12,18 @@ from time import sleep
 class ProcessTask(Process, metaclass=ABCMeta):
     """
     プロセスを生成、管理するための抽象クラスです。継承して使います。
-    workメソッドを周期INTERVALで繰り返し実行します。
+    workメソッドとINTERVAL属性をオーバーライドすれば周期INTERVALでworkメソッドが何度も実行されます。
+    タスクを開始するにはstartメソッドを実行してください。また、タスクを停止するにはstopメソッドを実行してください。
     set_pipeメソッドやset_queueメソッドによって得られるConnectionオブジェクトやQueueオブジェクトを介してメインプロセスと通信を行ってください。
+    なお、INTERVAL属性は、あくまで目安の周期であり、workメソッドの実際の実行周期はworkメソッドの実行時間に依存します。
+
     このクラス自体がmultiprocessing.Processを継承しています。そのため、Processと名前が衝突がしないようにしてください。
+    また、multiprocessingの仕様で、一部マルチプロセスにできないオブジェクトがあります。
+    実行時にPickle関係の例外が発生する場合はどこかに使用できないオブジェクトが使われているということになります。
+    その場合はそのオブジェクトの使用を取りやめるほかに解決法がありません。
     """
+    #: タスクを走らせる周期を表す属性です。単位はsecです。あくまで目安の周期なのであまりあてにはなりません。
     INTERVAL = 1
-    """
-    タスクを走らせる周期を表す属性です。単位はsecです。
-    あくまで目安の周期なのであまりあてにはなりません。
-    """
 
     def __init__(self):
         """
@@ -92,7 +95,7 @@ class ProcessTask(Process, metaclass=ABCMeta):
     @abstractclassmethod
     def work(self):
         """
-        タスクの本体です。
+        タスクの本体となるメソッドです。
         抽象メソッドです。
 
         :return: なし
@@ -108,7 +111,7 @@ class ProcessTask(Process, metaclass=ABCMeta):
         :return: 成功したら受信データを、失敗したらFalseを返します。
         """
         if self.pipe.poll():
-            self.buf = self.pipe.recv()
+            self.buf = self.pipe.__recv()
             return self.buf
         else:
             return False

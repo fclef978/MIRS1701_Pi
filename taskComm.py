@@ -1,3 +1,9 @@
+"""
+Arduinoと通信するタスクです。ポーリングや命令の送信を行います。
+
+:author: 鈴木宏和
+"""
+
 from ptask import ProcessTask
 from request import Request
 from time import sleep, time
@@ -7,8 +13,10 @@ import logging
 
 class Communication(ProcessTask):
     """
-    Arduinoとの通信タスクです。ポーリングや命令の送信を行います。
+    通信タスクを実現するクラスです。
+    ptask.ProcessTaskを継承して、マルチプロセスで動作しています。
     """
+    #: 実行周期です。
     INTERVAL = 0.11
 
     def __init__(self):
@@ -22,7 +30,8 @@ class Communication(ProcessTask):
 
     def work(self):
         """
-        主となる関数です。
+        タスクの本体となるメソッドです。
+
         :return: None
         """
         self.req.get()
@@ -44,7 +53,7 @@ if __name__ == '__main__':
     print('launched')
     for _ in range(5):
         if p.poll():
-            print(p.recv())
+            print(p.__recv())
             if _ == 3:
                 q.put(["reset"])
         else:

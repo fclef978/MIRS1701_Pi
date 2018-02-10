@@ -1,3 +1,9 @@
+"""
+メインタスクです。センサーから値を取得して走行します。
+
+:author: 鈴木宏和
+"""
+
 from ttask import PeriodicTask
 from time import sleep
 from battery import Battery
@@ -10,13 +16,19 @@ import logging
 
 class Main(PeriodicTask):
     """
-    メインタスクです。センサーから値を取得して走行します。
+    メインタスクを実現するクラスです。
+    ttask.PeriodicTaskを継承して、マルチスレッドを利用した精度の高い周期実行を行います。
     """
+    #: 実行周期です。
     INTERVAL = 0.1
 
     def __init__(self, uss, comm, q):
         """
         コンストラクタです。
+
+        :param Connection uss: taskPollとのConnectionオブジェクトです。
+        :param Connection comm: taskCommとのConnectionオブジェクトです。
+        :param Queue q: taskCommとのQueueオブジェクトです。
         """
         self.logger = logging.getLogger(__name__)
         
@@ -34,9 +46,14 @@ class Main(PeriodicTask):
         PeriodicTask.__init__(self)
 
     def init(self):
+        """
+        タスクを開始する際に初期化を行うメソッドです。
+
+        :return: なし
+        """
         self.cmds = []
         while self.req == {} or self.uss == []:
-            self.recv()
+            self.__recv()
             sleep(0.01)
         while True:
             try:
@@ -51,36 +68,31 @@ class Main(PeriodicTask):
     
     def work(self):
         """
-        主となる関数です。
-        シンプルに実装したい。
-        :return: None
+        タスクの本体となるメソッドです。
+
+        :return: なし
         """
-        print(self.data.is_left)
-        #print(self.req["jsX"], self.req["jsY"])
-        print(self.req["cap"])
-        #print(self.data.uss)
         self.cmds = []
-        self.recv()
+        self.__recv()
         self.data.set_value(self.uss, self.req)
         self.cmds += self.movement.execute()
-        self.batt_check()
-        self.cmds_send()
-        # print(self.data.uss, self.cmds, self.movement.state.state, self.data.ard)
+        self.__batt_check()
+        self.__cmds_send()
         
-    def cmd_append(self, cmd):
+    def __cmd_append(self, cmd):
         if cmd is None:
             return
         self.cmds += cmd
         
-    def recv(self):
+    def __recv(self):
         if self.pipe_uss.poll():
             self.uss = self.pipe_uss.recv()
         if self.pipe_comm.poll():
             self.req = self.pipe_comm.recv()
 
-    def batt_check(self):
+    def __batt_check(self):
         self.cmds += self.batt.generate_command(self.req["btA"], self.req["btB"])
 
-    def cmds_send(self):
+    def __cmds_send(self):
         for cmd in self.cmds:
             self.q.put(cmd)

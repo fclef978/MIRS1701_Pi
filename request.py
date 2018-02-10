@@ -1,5 +1,7 @@
 """
 Arduinoとの通信のラッパーモジュールです。
+
+:author: 鈴木宏和
 """
 
 from arduino import Arduino

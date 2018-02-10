@@ -1,3 +1,9 @@
+"""
+超音波センサから値を取得するタスクです。一定周期でポーリングを行います。
+
+:author: 鈴木宏和
+"""
+
 from uss import Uss
 from ptask import ProcessTask
 from time import sleep
@@ -5,12 +11,13 @@ from time import sleep
 
 class Poll(ProcessTask):
     """
-    超音波センサから値を取得するタスクです。一定周期でポーリングを行います。
+    I2C通信を行うタスクを実現するためのクラスです。
+    ptask.ProcessTaskを継承して、マルチプロセスで動作しています。
     """
-    
+    #: 実行周期です。
     INTERVAL = 0.01
 
-    def __init__(self, pipe=None):
+    def __init__(self):
         """
         コンストラクタです。
         """
@@ -19,7 +26,8 @@ class Poll(ProcessTask):
 
     def work(self):
         """
-        主となる関数です。
+        タスクの本体となるメソッドです。
+
         :return: None
         """
         self.uss.get()
@@ -32,7 +40,7 @@ if __name__ == '__main__':
     print('launched')
     for _ in range(5):
         if p.poll():
-            print(p.recv())
+            print(p.__recv())
         else:
             print(None)
         sleep(1)

@@ -10,7 +10,7 @@ class State:
         """
         コンストラクタです。各種初期状態を代入します。
         
-        :param Databox data: Databoxのオブジェクトです。
+        :param Databox data: Databoxのオブジェクト
         """
         self.state = "init"
         self.data = data
@@ -161,8 +161,8 @@ class State:
         """
         センサーの値から入力があるかどうかを判定します。
         
-        :param String check_name: 判定ほしい入力です。
-        :return boolean: 入力があるかどうか。
+        :param String check_name: 判定ほしい入力
+        :return boolean: 入力判定結果
         """
         if check_name == "jsL":  # ジョイスティック左入力
             return self.data.ard["jsX"] > 900

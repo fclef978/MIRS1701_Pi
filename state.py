@@ -162,7 +162,8 @@ class State:
         センサーの値から入力があるかどうかを判定します。
         
         :param String check_name: 判定ほしい入力
-        :return boolean: 入力判定結果
+        :rtype: bool
+        :return: 入力判定結果
         """
         if check_name == "jsL":  # ジョイスティック左入力
             return self.data.ard["jsX"] > 900

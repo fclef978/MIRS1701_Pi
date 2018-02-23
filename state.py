@@ -2,8 +2,16 @@ from time import time
 
 
 class State:
-
+    """
+    走行状態を判定するクラスです。
+    判定結果はself.stateへ格納されます。
+    """
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクトです。
+        """
         self.state = "init"
         self.data = data
         self.is_changed = False
@@ -12,13 +20,18 @@ class State:
         self.timer = 0
 
     def judge(self):
+        """
+        走行状態を判定します。今の状態により各種判定用メソッドを呼び出します。
+        
+        :return: なし
+        """
         prev = self.state
         self.__getattribute__(self.state)()
-        if self.sns_check("help"):  # 救援要請ボタンが押されていたら救援要請に入る
+        if self.sns_check("help"):
             self.state = "help"
         if not self.state == "help":
-            if self.sns_check("un_touch"):  # 救援要請中でなく、ハーネスから手が離れた場合
-                if self.timer == 0:  # タイマーセット
+            if self.sns_check("un_touch"):
+                if self.timer == 0:
                     self.timer = time()
                 self.state = "un_touch"
         if not prev == self.state:
@@ -28,13 +41,20 @@ class State:
             self.is_changed = False
 
     def init(self):
+        """
+        初期状態での判定です。ジョイスティック前入力で直進状態に移行します。
+        
+        :return: なし
+        """
         if self.sns_check("jsU"):
             self.state = "straight"
 
     def straight(self):
         """
-        直進走行状態からの状態分岐です。
-        何かを検知したら一度走行を停止し、次になる状態をexpectedに代入します。
+        直進走行状態での判定です。
+        何かを検知したら停止状態に移行し、次になる状態をexpectedに代入します。
+        
+        :return: なし
         """
         if self.sns_check("corner"):  # 曲がり角
             self.state = "wait"
@@ -52,9 +72,10 @@ class State:
 
     def wait(self):
         """
-        待機状態からの状態分岐です。
-        どの状態の前かを判断し、入力が行われると次の状態へ移行します。
-        waitと言いながらstopも入ってるので分離したほうがいいかも?
+        待機状態での判定です。
+        入力が行われるとexpectedの状態へ移行します。
+        
+        :return: なし
         """
         if self.expected == "turn":  # 交差点の動作
             if (self.data.is_left and self.sns_check("jsL")) or (not self.data.is_left and self.sns_check("jsR")):  # 曲がる
@@ -75,23 +96,48 @@ class State:
             self.state = self.expected
 
     def avoid(self):
+        """
+        障害物回避状態での判定です。障害物がなくなれば直進状態へ移行します。
+        
+        :return: なし
+        """
         if not self.sns_check("obstacle"):
             self.state = "straight"
 
     def change(self):
+        """
+        左右の壁変更状態での判定です。直進状態へ移行します。
+        
+        :return: なし
+        """
         self.state = "straight"
 
     def turn(self):
+        """
+        曲がり角回転状態での判定です。壁を検出したら直進状態へ移行します。
+        
+        :return: なし
+        """
         if self.sns_check("catch_wall"):
             self.state = "straight"
             self.expected = "straight"
 
     def cross(self):
+        """
+        曲がり角直進状態での判定です。壁を検出したら直進状態へ移行します。
+        
+        :return: なし
+        """
         if self.sns_check("catch_wall"):
             self.state = "straight"
             self.expected = "straight"
 
     def help(self):
+        """
+        救援要請状態での判定です。救援がいらなくなったら待機状態へ移行します。
+        
+        :return: なし
+        """
         if self.prev == "un_touch":
             if not self.sns_check("un_touch"):  # un_touchから時間経過で来た場合、握ったらwaitに戻る
                 self.state = "wait"
@@ -99,6 +145,11 @@ class State:
             self.state = "wait"
 
     def un_touch(self):
+        """
+        ハーネスから手が離れている状態での判定です。時間経過で救援要請状態へ移行します。
+        
+        :return: なし
+        """
         if not self.sns_check("un_touch"):  # ハーネスを握ったらwaitに戻る
             self.state = "wait"
             self.timer = 0
@@ -108,10 +159,10 @@ class State:
 
     def sns_check(self, check_name):
         """
-        センサーや入力から、判定してほしい項目(check_name)をチェックするメソッド
-        センサーと入力のチェックは別のメソッドにした方がわかりやすいかも?
-        :param check_name:
-        :return:True or False
+        センサーの値から入力があるかどうかを判定します。
+        
+        :param String check_name: 判定ほしい入力です。
+        :return boolean: 入力があるかどうか。
         """
         if check_name == "jsL":  # ジョイスティック左入力
             return self.data.ard["jsX"] > 900

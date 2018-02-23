@@ -7,15 +7,30 @@ sound = Sound()
 
 
 class Run():
-    RADIUS = 40  # MIRSのタイヤ間の距離[cm]
+    """
+    走行を制御するクラスです。
+    """
+    #: MIRSのタイヤ間の距離[cm]を表す属性です。
+    RADIUS = 40
+    #: MIRSの中心から超音波センサまでの距離[cm]を表す属性です。
     USS_RADIUS = 19
-    USS_DIST = 30  # MIRSの中心から超音波センサまでの距離[cm]
+    #: MIRSの中心から超音波センサまでの距離[cm]を表す属性です。
+    USS_DIST = 30
+    #: MIRSの中心から超音波センサまでの距離[cm]を表す属性です。
     USS_DIFF = 6
-    TARGET_DIST = 60  # 目標となる壁との距離[m]
-    INTERVAL = 0.01  # 制御周期[s]
+    #: 目標となる壁との距離[m]を表す属性です。
+    TARGET_DIST = 60
+    #: 制御周期[s]を表す属性です。
+    INTERVAL = 0.01
+    #: ussのキーを表す属性です。
     USS_DICT_LIST = ["f", "sf", "s", "sb"]
     
     def __init__(self, data):
+        """
+        コンストラクタです。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         self.data = data
         self.cmd_prev = []
         self.state = State(data)
@@ -30,6 +45,11 @@ class Run():
         self.state_prev = self.state.state
 
     def execute(self):
+        """
+        コマンドを生成します。
+        
+        :return list cmds: Arduinoに送るコマンド
+        """
         self.data.state = self.state.state
         self.data.prev = self.state.prev
         self.data.expected = self.state.expected
@@ -38,6 +58,11 @@ class Run():
         return cmds
 
     def run(self):
+        """
+        走行値を生成します。今の状態により、各種生成用メソッドを呼び出します。
+        
+        :return list cmd: Arduinoに送る走行コマンド
+        """
         tmp = self.__getattribute__(self.state.state)
         cmd = tmp.generate_command()
         if tmp.is_terminate:
@@ -52,6 +77,9 @@ class Run():
         return cmd
 
     def is_duplicate_cmd(self, cmd):
+        """
+        
+        """
         if self.cmd_prev == cmd:
             return cmd
         else:
@@ -59,6 +87,15 @@ class Run():
 
     @staticmethod
     def calc_pos(sf, s, sb, is_left):
+        """
+        自己位置を計算します。
+        
+        :param int sf: MIRSの横の前の超音波センサの値
+        :param int s: MIRSの真横の超音波センサの値
+        :param int sb: MIRSの横の後ろの超音波センサの値
+        :param boolean is_left: 左壁かどうか
+        :return tuple: 距離x、角度th
+        """
         ratio = (((sb - sf) / Run.USS_DIST) ** 2.0 + 1) ** -0.5
         th = math.acos(ratio)
         if (is_left and sf > sb) or (not is_left and sb > sf):
@@ -68,6 +105,14 @@ class Run():
 
     @staticmethod
     def limit(tgt, u, l):
+        """
+        値が許容範囲に収めます。
+        
+        :param double tgt: 許容範囲に収めたい値
+        :param double u: 上限値
+        :param double l: 下限値
+        :return double tgt: 許容範囲に収めた値
+        """
         if tgt > u:
             tgt = u
         if tgt < l:
@@ -80,36 +125,64 @@ class Travel:
     走行系の親クラス
     """
     def __init__(self, data):
+        """
+        コンストラクタです。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         self.data = data
         self.is_terminate = False
         self.count = 0
 
     def generate_command(self):
+        """
+        コマンドを生成します。
+        
+        :return list: Arduinoへのコマンド
+        """
         self.count += 1
         return []
 
     def is_arduino_stop(self):
+        """
+        走行が停止しているかをArduinoからの値を元に判断します。
+        
+        :return boolean: 停止しているか
+        """
         if self.data.ard["mode"] == 0:
             return True
         else:
             return False
 
     def reset(self):
+        """
+        カウントと終了フラグをリセットします。
+        """
         self.is_terminate = False
         self.count = 0
 
 
 class Init(Travel):
     """
-    初期状態
+    初期状態のクラスです。
     """
 
     def __init__(self, data):
+        """
+        コンストラクタです。スピーカーをオフにします。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.is_terminate = True
         sound.sperker_off()
 
     def generate_command(self):
+        """
+        コマンドを生成します。一度だけ左右の壁を判定してself.data.is_leftに格納します。
+        
+        :return list: Arduinoへのコマンド
+        """
         if self.count == 0:
             self.count += 1
             self.data.is_left = self.data.uss["os"] > self.data.uss["s"]
@@ -118,13 +191,21 @@ class Init(Travel):
 
 class Straight(Travel):
     """
-    壁追従制御
+    壁追従(直進)走行制御を行うクラスです。
     """
+    #: Pゲインをを表す属性です。
     Kp = -1
+    #: Iゲインをを表す属性です。
     Ki = 0.0
+    #: Dゲインをを表す属性です。
     Kd = 0.0
 
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.pid_angle = PID((Straight.Kp, Straight.Ki, Straight.Kd), 0.1, Run.TARGET_DIST)
         self.pid_speed = PID((-0.4, 0, 0), 0.1, 0)
@@ -136,6 +217,12 @@ class Straight(Travel):
         self.dist = 0
 
     def generate_command(self):
+        """
+        コマンドを生成し、5メートルごとに音声通知をします。
+        既定走行値に補正値を加えます。
+        
+        :return list [["velocity", speed_l, speed_r]]: Arduinoへのコマンド。speed_lは左のタイヤの速度、speed_rは右のタイヤの速度
+        """
         self.dist = (self.data.ard["distL"] + self.data.ard["distR"]) / 2
         if self.count == 0:
             self.count += 1
@@ -166,6 +253,9 @@ class Straight(Travel):
         return [["velocity", speed_l, speed_r]]
 
     def reset(self):
+        """
+        各種値をリセットします。
+        """
         Travel.reset(self)
         self.dist_prev = 0
         self.correction_val = 1
@@ -175,15 +265,25 @@ class Straight(Travel):
 
 class Wait(Travel):
     """
-    待機
-    走行を停止させ、入力を待ちます。
+    待機を行うクラスです。
     """
 
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.is_terminate = True
 
     def generate_command(self):
+        """
+        コマンドを生成し、待機音声を通知します。
+        停止コマンドを生成します。
+        
+        :return list: Arduinoへのコマンド
+        """
         if self.count == 0:
             self.count += 1
             sound.sperker_off()
@@ -198,20 +298,32 @@ class Wait(Travel):
         return []
 
     def reset(self):
+        """
+        各種値をリセットします。
+        """
         Travel.reset(self)
         self.is_terminate = True
 
 
 class Help(Travel):
     """
-    救援要請
-    走行を停止させ、救援要請を行います。
+    救援要請を行うクラスです。
     """
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.is_terminate = True
 
     def generate_command(self):
+        """
+        停止コマンドを生成し、一定時間ごと救援音声を流します。
+        
+        :return list: Arduinoへのコマンド
+        """
         if self.count % 30 == 0:
             self.count += 1
             sound.sperker_on()
@@ -222,20 +334,32 @@ class Help(Travel):
         return []
 
     def reset(self):
+        """
+        各種値をリセットします。
+        """
         Travel.reset(self)
         self.is_terminate = True
 
 
 class Touch(Travel):
     """
-    ハーネスを話した時の動作
-    走行を停止させ、ユーザーに通知します。
+    ハーネスを離した時のクラスです。
     """
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.is_terminate = True
 
     def generate_command(self):
+        """
+        停止コマンドを生成し、一定時間ごとハーネスを握るように促す音声を流します。
+        
+        :return list: Arduinoへのコマンド
+        """
         if self.count % 30 == 0:
             self.count += 1
             sound.sperker_on()
@@ -246,20 +370,33 @@ class Touch(Travel):
         return []
 
     def reset(self):
+        """
+        各種値をリセットします。
+        """
         Travel.reset(self)
         self.is_terminate = True
 
 
 class Turn(Travel):
     """
-    曲がり角曲がる
-    90度旋回し、その後に壁との距離分直進します。
+    曲がり角曲がるクラスです。
     """
 
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
 
     def generate_command(self):
+        """
+        コマンドを生成し、曲がり角を曲がる音声通知をします。
+        壁との距離を旋回半径に回転した後、直進をします。
+        
+        :return list: Arduinoへのコマンド
+        """
         print("isast {0}".format(self.is_arduino_stop()))
         if self.count == 0:
             self.count += 1
@@ -281,15 +418,24 @@ class Turn(Travel):
 
 class Cross(Travel):
     """
-    待機
-    走行を停止させ、入力を待ちます。
+    曲がり角を直進するクラスです。
     """
 
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         self.is_terminate = True
 
     def generate_command(self):
+        """
+        直進コマンドを生成し、直進音声を流します。
+        
+        :return list: Arduinoへのコマンド
+        """
         if self.count == 0:
             self.count += 1
             sound.say_straight()
@@ -297,22 +443,36 @@ class Cross(Travel):
 
 
     def reset(self):
+        """
+        各種値をリセットします。
+        """
         Travel.reset(self)
         self.is_terminate = True
 
 
 class Avoid(Travel):
     """
-    障害物回避
-    よけれない
+    障害物回避を行うクラスです。
+    現在、回避動作は実装されていません。
     """
 
     def __init__(self, data):
+        """
+        コンストラクタです。各種初期状態を代入します。
+        
+        :param Databox data: Databoxのオブジェクト
+        """
         Travel.__init__(self, data)
         # self.is_terminate = True
 
 
     def generate_command(self):
+        """
+        障害物回避コマンドを生成し、障害物回避音声を通知します。
+        現在、障害物回避動作は実装されていません。
+        
+        :return list: Arduinoへのコマンド
+        """
         self.is_terminate = True
         if self.count == 0:
             self.count += 1

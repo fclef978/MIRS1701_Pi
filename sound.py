@@ -24,7 +24,8 @@ class Sound():
         渡した文字列を喋ります。
         
         :param text: 喋らせたい文字列
-        :return self.say(): 音声
+        :rtype: Popen
+        :return: 音声
         """
         self.generate_wave(text)
         return self.say()
@@ -50,7 +51,8 @@ class Sound():
         wavファイルはあらかじめ用意する必要があります。
         
         :param name: 喋らせたいwavファイルの名前
-        :return self.sp: 音声
+        :rtype: Popen
+        :return: 音声
         """
         try:
             self.sp.terminate()

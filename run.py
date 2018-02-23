@@ -61,7 +61,8 @@ class Run():
         """
         走行値を生成します。今の状態により、各種生成用メソッドを呼び出します。
         
-        :return list cmd: Arduinoに送る走行コマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         tmp = self.__getattribute__(self.state.state)
         cmd = tmp.generate_command()
@@ -108,10 +109,11 @@ class Run():
         """
         値が許容範囲に収めます。
         
-        :param double tgt: 許容範囲に収めたい値
-        :param double u: 上限値
-        :param double l: 下限値
-        :return double tgt: 許容範囲に収めた値
+        :param int tgt: 許容範囲に収めたい値
+        :param int u: 上限値
+        :param int l: 下限値
+        :rtype: int
+        :return: 許容範囲に収めた値
         """
         if tgt > u:
             tgt = u
@@ -138,7 +140,8 @@ class Travel:
         """
         コマンドを生成します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         self.count += 1
         return []
@@ -147,7 +150,8 @@ class Travel:
         """
         走行が停止しているかをArduinoからの値を元に判断します。
         
-        :return boolean: 停止しているか
+        :rtype: bool
+        :return: 停止しているか
         """
         if self.data.ard["mode"] == 0:
             return True
@@ -181,7 +185,8 @@ class Init(Travel):
         """
         コマンドを生成します。一度だけ左右の壁を判定してself.data.is_leftに格納します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         if self.count == 0:
             self.count += 1
@@ -221,7 +226,8 @@ class Straight(Travel):
         コマンドを生成し、5メートルごとに音声通知をします。
         既定走行値に補正値を加えます。
         
-        :return list [["velocity", speed_l, speed_r]]: Arduinoへのコマンド。speed_lは左のタイヤの速度、speed_rは右のタイヤの速度
+        :rtype: list
+        :return: Arduinoへのコマンド。左右のタイヤの速度。
         """
         self.dist = (self.data.ard["distL"] + self.data.ard["distR"]) / 2
         if self.count == 0:
@@ -282,7 +288,8 @@ class Wait(Travel):
         コマンドを生成し、待機音声を通知します。
         停止コマンドを生成します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         if self.count == 0:
             self.count += 1
@@ -322,7 +329,8 @@ class Help(Travel):
         """
         停止コマンドを生成し、一定時間ごと救援音声を流します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         if self.count % 30 == 0:
             self.count += 1
@@ -358,7 +366,8 @@ class Touch(Travel):
         """
         停止コマンドを生成し、一定時間ごとハーネスを握るように促す音声を流します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         if self.count % 30 == 0:
             self.count += 1
@@ -395,7 +404,8 @@ class Turn(Travel):
         コマンドを生成し、曲がり角を曲がる音声通知をします。
         壁との距離を旋回半径に回転した後、直進をします。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         print("isast {0}".format(self.is_arduino_stop()))
         if self.count == 0:
@@ -434,7 +444,8 @@ class Cross(Travel):
         """
         直進コマンドを生成し、直進音声を流します。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         if self.count == 0:
             self.count += 1
@@ -471,7 +482,8 @@ class Avoid(Travel):
         障害物回避コマンドを生成し、障害物回避音声を通知します。
         現在、障害物回避動作は実装されていません。
         
-        :return list: Arduinoへのコマンド
+        :rtype: list
+        :return: Arduinoに送る走行コマンド
         """
         self.is_terminate = True
         if self.count == 0:
